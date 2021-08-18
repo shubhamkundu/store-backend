@@ -14,9 +14,7 @@ module.exports = ({ db }) => {
             .then(response => {
                 res.send(response);
             })
-            .catch(err => {
-                handleAPIError(req, res);
-            });
+            .catch(handleAPIError.bind(null, req, res));
     });
 
     storeRouter.get('/:storeId', (req, res) => {
@@ -28,13 +26,27 @@ module.exports = ({ db }) => {
     });
 
     storeRouter.post('/', (req, res) => {
-        storeService.getAllStores()
+        storeService.createStore(req.body)
             .then(response => {
                 res.send(response);
             })
-            .catch(err => {
-                handleAPIError(req, res);
-            });
+            .catch(handleAPIError.bind(null, req, res));
+    });
+
+    storeRouter.patch('/', (req, res) => {
+        storeService.updateStore(req.body)
+            .then(response => {
+                res.send(response);
+            })
+            .catch(handleAPIError.bind(null, req, res));
+    });
+
+    storeRouter.delete('/:storeId', (req, res) => {
+        storeService.deleteStore(req.params.storeId)
+            .then(response => {
+                res.send(response);
+            })
+            .catch(handleAPIError.bind(null, req, res));
     });
 
     return storeRouter;

@@ -1,76 +1,156 @@
+const { validateId, validateStoreBody, validateStoreUpdateObj } = require('./../utils/validator');
+
 module.exports = ({ db }) => ({
-    getAllStores: () => new Promise((resolve, reject) => {
-        db.models.Store.find((err, stores) => {
-            if (err) return reject(err);
+    getAllStores: () => new Promise(async (resolve, reject) => {
+        try {
+            const stores = await db.models.Store.find();
             resolve(stores);
-        });
+        } catch (e) {
+            return reject({
+                statusCode: 500,
+                errorMessage: e
+            });
+        }
     }),
 
-    getStoreByStoreId: (storeIdStr) => new Promise((resolve, reject) => {
-        if (storeIdStr == null) {
-            return reject({
-                statusCode: 400,
-                errorMessage: `Please provide storeId as request path parameter`
-            });
-        }
-        const storeId = parseInt(storeIdStr);
-        if (isNaN(storeId) || storeId <= 0) {
-            return reject({
-                statusCode: 400,
-                errorMessage: `Please provide a positive integer value for storeId`
-            });
-        }
-
-        db.models.Store.findOne({ storeId }, (err, store) => {
-            if (err) {
+    getStoreByStoreId: (storeIdStr) => new Promise(async (resolve, reject) => {
+        try {
+            const valid = validateId('storeId', storeIdStr, 'path');
+            if (!valid.ok) {
                 return reject({
-                    statusCode: 500,
-                    errorMessage: err
+                    statusCode: 400,
+                    errorMessage: valid.reason
+                });
+            }
+            const storeId = valid.value;
+
+            const store = await db.models.Store.findOne({ storeId });
+            if (!store) {
+                return reject({
+                    statusCode: 400,
+                    errorMessage: `Store not found for storeId: ${storeId}`
                 });
             }
             resolve(store);
-        });
+        } catch (e) {
+            return reject({
+                statusCode: 500,
+                errorMessage: e
+            });
+        }
     }),
 
-    saveStore: (body) => new Promise((resolve, reject) => {
-        if (typeof body.name !== 'string' || body.name.trim() === '') {
-            return reject({
-                statusCode: 400,
-                errorMessage: `Please provide string value for name in request body`
-            });
-        }
-        if (typeof body.location !== 'string' || body.location.trim() === '') {
-            return reject({
-                statusCode: 400,
-                errorMessage: `Please provide string value for location in request body`
-            });
-        }
-        if (typeof body.phone !== 'number' || !Number.isInteger(body.phone)) {
-            return reject({
-                statusCode: 400,
-                errorMessage: `Please provide integer value for phone in request body`
-            });
-        }
-        if (('' + body.phone).length != 10) {
-            return reject({
-                statusCode: 400,
-                errorMessage: `Please provide 10-digit integer value for phone in request body`
-            });
-        }
-
-        const storeDoc = {
-            storeId: new Date().getTime(),
-            ...body
-        };
-
-        db.models.Store.save(storeDoc, (err, store) => {
-            if (err) {
+    createStore: (body) => new Promise(async (resolve, reject) => {
+        try {
+            const valid = validateStoreBody(body);
+            if (!valid.ok) {
                 return reject({
-                    statusCode: 500,
-                    errorMessage: err
+                    statusCode: 400,
+                    errorMessage: valid.reason
                 });
             }
-            resolve(store);
-        });
+
+            const storeDoc = {
+                storeId: new Date().getTime(),
+                ...body
+            };
+
+            const result = await db.models.Store.create(storeDoc);
+            resolve(result);
+        } catch (e) {
+            return reject({
+                statusCode: 500,
+                errorMessage: e
+            });
+        }
+    }),
+
+    updateStore: (body) => new Promise(async (resolve, reject) => {
+        try {
+            let valid = validateId('storeId', body.storeId, 'body');
+            if (!valid.ok) {
+                return reject({
+                    statusCode: 400,
+                    errorMessage: valid.reason
+                });
+            }
+            body.storeId = valid.value;
+
+            const queryObj = { storeId: body.storeId };
+            const updateObj = {};
+            let updateRequired = false;
+            if (body.name) {
+                updateObj.name = body.name;
+                updateRequired = true;
+            }
+            if (body.location) {
+                updateObj.location = body.location;
+                updateRequired = true;
+            }
+            if (body.phone) {
+                updateObj.phone = body.phone;
+                updateRequired = true;
+            }
+
+            if (!updateRequired) {
+                return reject({
+                    statusCode: 400,
+                    errorMessage: `Provide at least one value to update`
+                });
+            }
+
+            valid = validateStoreUpdateObj(updateObj);
+            if (!valid.ok) {
+                return reject({
+                    statusCode: 400,
+                    errorMessage: valid.reason
+                });
+            }
+
+            const result = await db.models.Store.updateOne(queryObj, updateObj);
+
+            if (result.n === 0) {
+                return reject({
+                    statusCode: 400,
+                    errorMessage: `Store not found against against storeId: ${queryObj.storeId}`
+                });
+            }
+
+            resolve(result);
+        } catch (e) {
+            return reject({
+                statusCode: 500,
+                errorMessage: e
+            });
+        }
+    }),
+
+    deleteStore: (storeIdStr) => new Promise(async (resolve, reject) => {
+        try {
+            const valid = validateId('storeId', storeIdStr, 'path');
+            if (!valid.ok) {
+                return reject({
+                    statusCode: 400,
+                    errorMessage: valid.reason
+                });
+            }
+            const storeId = valid.value;
+
+            const result = await db.models.Store.deleteOne({ storeId });
+
+            if (result.n === 0) {
+                return reject({
+                    statusCode: 400,
+                    errorMessage: `Store not found against against storeId: ${storeId}`
+                });
+            }
+
+            resolve(result);
+        } catch (e) {
+            return reject({
+                statusCode: 500,
+                errorMessage: e
+            });
+        }
     })
 });

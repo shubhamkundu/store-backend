@@ -5,7 +5,7 @@ require('dotenv').config();
 const express = require('express');
 
 // import local dependencies
-require('./error-handler');
+require('./utils/error-handler');
 const { db } = require('./db');
 const { storeRouter } = require('./routes')({ db });
 
