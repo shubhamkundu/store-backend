@@ -1,5 +1,5 @@
-const { validateId, validateUserBody } = require('../utils/validator');
-const { copyPropsFromObj } = require('../utils/lib');
+const { validateId, validateUserBody, validateEmail } = require('./../utils/validator');
+const { generateUserObj } = require('../utils/lib');
 
 module.exports = ({ db }) => ({
     getAllUsers: () => new Promise(async (resolve, reject) => {
@@ -41,10 +41,9 @@ module.exports = ({ db }) => ({
         }
     }),
 
-    createUser: (body) => new Promise(async (resolve, reject) => {
-        const now = new Date();
+    getUserByEmail: (email) => new Promise(async (resolve, reject) => {
         try {
-            const valid = validateUserBody(body, 'insert');
+            const valid = validateEmail(email);
             if (!valid.ok) {
                 return reject({
                     statusCode: 400,
@@ -52,15 +51,14 @@ module.exports = ({ db }) => ({
                 });
             }
 
-            const userDoc = {
-                userId: new Date().getTime(),
-                ...copyPropsFromObj(['name', 'email', 'password'], body),
-                createdOn: now.toISOString()
-            };
-
-            const result = await db.models.User.create(userDoc);
-            delete result._doc.password;
-            resolve(result);
+            const user = await db.models.User.findOne({ email });
+            if (!user) {
+                return reject({
+                    statusCode: 400,
+                    errorMessage: `User not found for email: ${email}`
+                });
+            }
+            resolve(user);
         } catch (e) {
             return reject({
                 statusCode: 500,
@@ -69,7 +67,7 @@ module.exports = ({ db }) => ({
         }
     }),
 
-    updateUser: (body) => new Promise(async (resolve, reject) => {
+    updateUser: (body, loggedInUser) => new Promise(async (resolve, reject) => {
         const now = new Date();
         try {
             let valid = validateId('userId', body.userId, 'body');
@@ -104,6 +102,7 @@ module.exports = ({ db }) => ({
                 updateObj.email = body.email;
             }
             updateObj.updatedOn = now.toISOString();
+            updateObj.updatedBy = generateUserObj(loggedInUser);
 
             const result = await db.models.User.updateOne(queryObj, updateObj);
 
@@ -123,7 +122,7 @@ module.exports = ({ db }) => ({
         }
     }),
 
-    updateUserRole: (body) => new Promise(async (resolve, reject) => {
+    updateUserRole: (body, loggedInUser) => new Promise(async (resolve, reject) => {
         const now = new Date();
         try {
             let valid = validateId('userId', body.userId, 'body');
@@ -143,7 +142,11 @@ module.exports = ({ db }) => ({
             }
 
             const queryObj = { userId };
-            const updateObj = { userRole, updatedOn: now.toISOString() };
+            const updateObj = {
+                userRole,
+                updatedOn: now.toISOString(),
+                updatedBy: generateUserObj(loggedInUser)
+            };
             const result = await db.models.User.updateOne(queryObj, updateObj);
 
             if (result.n === 0) {
@@ -162,7 +165,7 @@ module.exports = ({ db }) => ({
         }
     }),
 
-    deleteUser: (userIdStr) => new Promise(async (resolve, reject) => {
+    deleteUser: (userIdStr, loggedInUser) => new Promise(async (resolve, reject) => {
         const now = new Date();
         try {
             const valid = validateId('userId', userIdStr, 'path');
@@ -175,7 +178,11 @@ module.exports = ({ db }) => ({
             const userId = valid.value;
 
             const queryObj = { userId };
-            const updateObj = { isDeleted: true, deletedOn: now.toISOString() };
+            const updateObj = {
+                isDeleted: true, 
+                deletedOn: now.toISOString(),
+                deletedBy: generateUserObj(loggedInUser)
+            };
             const result = await db.models.User.updateOne(queryObj, updateObj);
 
             if (result.n === 0) {

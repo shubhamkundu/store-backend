@@ -1,5 +1,5 @@
 const { validateId, validateStoreBody } = require('./../utils/validator');
-const { copyPropsFromObj } = require('../utils/lib');
+const { copyPropsFromObj, generateUserObj } = require('../utils/lib');
 
 module.exports = ({ db }) => ({
     getAllStores: () => new Promise(async (resolve, reject) => {
@@ -41,7 +41,7 @@ module.exports = ({ db }) => ({
         }
     }),
 
-    createStore: (body) => new Promise(async (resolve, reject) => {
+    createStore: (body, loggedInUser) => new Promise(async (resolve, reject) => {
         const now = new Date();
         try {
             const valid = validateStoreBody(body, 'insert');
@@ -53,9 +53,10 @@ module.exports = ({ db }) => ({
             }
 
             const storeDoc = {
-                storeId: new Date().getTime(),
+                storeId: now.getTime(),
                 ...copyPropsFromObj(['name', 'location', 'phone'], body),
-                createdOn: now.toISOString()
+                createdOn: now.toISOString(),
+                createdBy: generateUserObj(loggedInUser)
             };
 
             const result = await db.models.Store.create(storeDoc);
@@ -68,7 +69,7 @@ module.exports = ({ db }) => ({
         }
     }),
 
-    updateStore: (body) => new Promise(async (resolve, reject) => {
+    updateStore: (body, loggedInUser) => new Promise(async (resolve, reject) => {
         const now = new Date();
         try {
             let valid = validateId('storeId', body.storeId, 'body');
@@ -106,6 +107,7 @@ module.exports = ({ db }) => ({
                 updateObj.phone = body.phone;
             }
             updateObj.updatedOn = now.toISOString();
+            updateObj.updatedBy = generateUserObj(loggedInUser);
 
             const result = await db.models.Store.updateOne(queryObj, updateObj);
 
@@ -125,7 +127,7 @@ module.exports = ({ db }) => ({
         }
     }),
 
-    deleteStore: (storeIdStr) => new Promise(async (resolve, reject) => {
+    deleteStore: (storeIdStr, loggedInUser) => new Promise(async (resolve, reject) => {
         const now = new Date();
         try {
             const valid = validateId('storeId', storeIdStr, 'path');
@@ -138,7 +140,11 @@ module.exports = ({ db }) => ({
             const storeId = valid.value;
 
             const queryObj = { storeId };
-            const updateObj = { isDeleted: true, deletedOn: now.toISOString() };
+            const updateObj = {
+                isDeleted: true, 
+                deletedOn: now.toISOString(),
+                deletedBy: generateUserObj(loggedInUser)
+            };
             const result = await db.models.Store.updateOne(queryObj, updateObj);
 
             if (result.n === 0) {

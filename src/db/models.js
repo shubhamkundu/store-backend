@@ -1,18 +1,6 @@
-const { preSaveUser, comparePassword } = require('./../utils/lib');
+const { preSaveUser } = require('./../utils/lib');
 
 module.exports = (mongoose) => {
-    const adminSchema = new mongoose.Schema({
-        adminId: { type: Number, required: true, unique: true },
-        name: { type: String, required: true },
-        email: { type: String, required: true, unique: true },
-        password: { type: String, required: true },
-        createdOn: { type: String, required: true },
-        updatedOn: { type: String },
-        deletedOn: { type: String }
-    });
-    adminSchema.pre('save', preSaveUser);
-    adminSchema.methods.comparePassword = comparePassword;
-
     const storeSchema = new mongoose.Schema({
         storeId: { type: Number, required: true, unique: true },
         name: { type: String, required: true },
@@ -20,7 +8,10 @@ module.exports = (mongoose) => {
         phone: { type: Number, required: true, unique: true },
         createdOn: { type: String, required: true },
         updatedOn: { type: String },
-        deletedOn: { type: String }
+        deletedOn: { type: String },
+        createdBy: { type: String, required: true },
+        updatedBy: { type: String },
+        deletedBy: { type: String }
     });
 
     const userSchema = new mongoose.Schema({
@@ -30,10 +21,12 @@ module.exports = (mongoose) => {
         password: { type: String, required: true },
         createdOn: { type: String, required: true },
         updatedOn: { type: String },
-        deletedOn: { type: String }
+        deletedOn: { type: String },
+        createdBy: { type: String, required: true },
+        updatedBy: { type: String },
+        deletedBy: { type: String }
     });
     userSchema.pre('save', preSaveUser);
-    userSchema.methods.comparePassword = comparePassword;
 
     const productSchema = new mongoose.Schema({
         productId: { type: Number, required: true, unique: true },
@@ -43,10 +36,12 @@ module.exports = (mongoose) => {
         description: { type: String },
         createdOn: { type: String, required: true },
         updatedOn: { type: String },
-        deletedOn: { type: String }
+        deletedOn: { type: String },
+        createdBy: { type: String, required: true },
+        updatedBy: { type: String },
+        deletedBy: { type: String }
     });
 
-    mongoose.model('Admin', adminSchema);
     mongoose.model('Store', storeSchema);
     mongoose.model('User', userSchema);
     mongoose.model('Product', productSchema);

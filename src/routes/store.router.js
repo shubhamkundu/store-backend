@@ -26,7 +26,7 @@ module.exports = ({ db }) => {
     });
 
     storeRouter.post('/', (req, res) => {
-        storeService.createStore(req.body)
+        storeService.createStore(req.body, req.user)
             .then(response => {
                 res.send(response);
             })
@@ -34,7 +34,7 @@ module.exports = ({ db }) => {
     });
 
     storeRouter.patch('/', (req, res) => {
-        storeService.updateStore(req.body)
+        storeService.updateStore(req.body, req.user)
             .then(response => {
                 res.send(response);
             })
@@ -42,7 +42,7 @@ module.exports = ({ db }) => {
     });
 
     storeRouter.delete('/:storeId', (req, res) => {
-        storeService.deleteStore(req.params.storeId)
+        storeService.deleteStore(req.params.storeId, req.user)
             .then(response => {
                 res.send(response);
             })

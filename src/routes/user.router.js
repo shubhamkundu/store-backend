@@ -25,16 +25,8 @@ module.exports = ({ db }) => {
             .catch(handleAPIError.bind(null, req, res));
     });
 
-    userRouter.post('/', (req, res) => {
-        userService.createUser(req.body)
-            .then(response => {
-                res.send(response);
-            })
-            .catch(handleAPIError.bind(null, req, res));
-    });
-
     userRouter.patch('/', (req, res) => {
-        userService.updateUser(req.body)
+        userService.updateUser(req.body, req.user)
             .then(response => {
                 res.send(response);
             })
@@ -42,7 +34,7 @@ module.exports = ({ db }) => {
     });
 
     userRouter.patch('/user-role', (req, res) => {
-        userService.updateUserRole(req.body)
+        userService.updateUserRole(req.body, req.user)
             .then(response => {
                 res.send(response);
             })
@@ -50,7 +42,7 @@ module.exports = ({ db }) => {
     });
 
     userRouter.delete('/:userId', (req, res) => {
-        userService.deleteUser(req.params.userId)
+        userService.deleteUser(req.params.userId, req.user)
             .then(response => {
                 res.send(response);
             })

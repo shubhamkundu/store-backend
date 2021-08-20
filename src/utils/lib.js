@@ -1,7 +1,8 @@
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const encryptionConfig = require('./../config/config').encryption;
 
-module.exports = {
+const self = module.exports = {
     handleAPIError: (req, res, err) => {
         console.error(`${req.method} ${req.originalUrl} API error:`, err);
         res
@@ -51,18 +52,52 @@ module.exports = {
         });
     },
 
-    comparePassword: function (candidatePassword, cb) {
-        bcrypt.compare(candidatePassword, this.password, (err, isMatch) => {
-            if (err) return cb(err);
-            cb(null, isMatch);
-        });
-    },
+    comparePassword: (actualPlaintextPassword, expectedHashedPassword) =>
+        new Promise((resolve, reject) => {
+            bcrypt.compare(actualPlaintextPassword, expectedHashedPassword, (err, isMatch) => {
+                if (err) return reject(err);
+                resolve(isMatch);
+            });
+        }),
 
     copyPropsFromObj: (propArr, obj) => {
         const newObj = {};
         for (const prop of propArr) {
-            newObj.prop = obj.prop;
+            newObj[prop] = obj[prop];
         }
         return newObj;
+    },
+
+    generateToken: (payload) => {
+        const options = {};
+        if (!!encryptionConfig.jwtExpiresIn) options.expiresIn = encryptionConfig.jwtExpiresIn;
+        const token = jwt.sign(payload, encryptionConfig.jwtSecret, options);
+        return token;
+    },
+
+    verifyToken: (req, res, next) => {
+        if (typeof req.headers.token !== 'string' || req.headers.token.trim() === '') {
+            return self.handleAPIError(req, res, {
+                statusCode: 401,
+                errorMessage: `Please provide token in request headers`
+            });
+        }
+        let user;
+        try {
+            user = jwt.verify(req.headers.token, encryptionConfig.jwtSecret);
+        } catch (e) {
+            return self.handleAPIError(req, res, {
+                statusCode: 401,
+                errorMessage: `Invalid token in request header`
+            });
+        }
+        req.user = user;
+        next();
+    },
+
+    generateUserObj: (loggedInUser) => {
+        const userObj = {};
+        userObj.name = loggedInUser.name;
+        userObj.email = loggedInUser.email;
     }
 };

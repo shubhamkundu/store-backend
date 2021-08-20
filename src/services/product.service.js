@@ -1,5 +1,5 @@
 const { validateId, validateProductBody } = require('./../utils/validator');
-const { copyPropsFromObj } = require('../utils/lib');
+const { copyPropsFromObj, generateUserObj } = require('../utils/lib');
 
 module.exports = ({ db }) => ({
     getAllProducts: () => new Promise(async (resolve, reject) => {
@@ -41,7 +41,7 @@ module.exports = ({ db }) => ({
         }
     }),
 
-    createProduct: (body) => new Promise(async (resolve, reject) => {
+    createProduct: (body, loggedInUser) => new Promise(async (resolve, reject) => {
         const now = new Date();
         try {
             const valid = validateProductBody(body, 'insert');
@@ -53,9 +53,10 @@ module.exports = ({ db }) => ({
             }
 
             const productDoc = {
-                productId: new Date().getTime(),
+                productId: now.getTime(),
                 ...copyPropsFromObj(['name', 'category', 'availableQuantity', 'description'], body),
-                createdOn: now.toISOString()
+                createdOn: now.toISOString(),
+                createdBy: generateUserObj(loggedInUser)
             };
 
             const result = await db.models.Product.create(productDoc);
@@ -68,7 +69,7 @@ module.exports = ({ db }) => ({
         }
     }),
 
-    updateProduct: (body) => new Promise(async (resolve, reject) => {
+    updateProduct: (body, loggedInUser) => new Promise(async (resolve, reject) => {
         const now = new Date();
         try {
             let valid = validateId('productId', body.productId, 'body');
@@ -109,6 +110,7 @@ module.exports = ({ db }) => ({
                 updateObj.description = body.description;
             }
             updateObj.updatedOn = now.toISOString();
+            updateObj.updatedBy = generateUserObj(loggedInUser);
 
             const result = await db.models.Product.updateOne(queryObj, updateObj);
 
@@ -128,7 +130,7 @@ module.exports = ({ db }) => ({
         }
     }),
 
-    deleteProduct: (productIdStr) => new Promise(async (resolve, reject) => {
+    deleteProduct: (productIdStr, loggedInUser) => new Promise(async (resolve, reject) => {
         const now = new Date();
         try {
             const valid = validateId('productId', productIdStr, 'path');
@@ -141,7 +143,11 @@ module.exports = ({ db }) => ({
             const productId = valid.value;
 
             const queryObj = { productId };
-            const updateObj = { isDeleted: true, deletedOn: now.toISOString() };
+            const updateObj = {
+                isDeleted: true, 
+                deletedOn: now.toISOString(),
+                deletedBy: generateUserObj(loggedInUser)
+            };
             const result = await db.models.Product.updateOne(queryObj, updateObj);
 
             if (result.n === 0) {

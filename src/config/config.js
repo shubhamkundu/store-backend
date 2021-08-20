@@ -18,6 +18,8 @@ module.exports = {
         bcryptSaltWorkFactor:
             isFinite(process.env.BCRYPT_SALT_WORK_FACTOR)
                 ? parseInt(process.env.BCRYPT_SALT_WORK_FACTOR)
-                : 10
+                : 10,
+        jwtSecret: process.env.JWT_SECRET || '',
+        jwtExpiresIn: process.env.JWT_EXPIRES_IN || ''
     }
 };

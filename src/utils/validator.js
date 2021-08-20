@@ -121,6 +121,44 @@ module.exports = {
         return result;
     },
 
+    validateEmail: (email) => {
+        if (typeof email !== 'string' || email.trim() === '') {
+            return {
+                ok: false,
+                reason: `Please provide string value for email in request body`
+            };
+        }
+        if (!validateEmail(email)) {
+            return {
+                ok: false,
+                reason: `Please provide valid email in request body`
+            };
+        }
+        return { ok: true };
+    },
+
+    validateLoginBody: (body) => {
+        if (typeof body.email !== 'string' || body.email.trim() === '') {
+            return {
+                ok: false,
+                reason: `Please provide string value for email in request body`
+            };
+        }
+        if (!validateEmail(body.email)) {
+            return {
+                ok: false,
+                reason: `Please provide valid email in request body`
+            };
+        }
+        if (typeof body.password !== 'string' || body.password.trim() === '') {
+            return {
+                ok: false,
+                reason: `Please provide value for password in request body`
+            };
+        }
+        return { ok: true };
+    },
+
     validateUserRole: (userRole) => {
         if (typeof userRole !== 'string'
             || !validationConfig.allowedUserRoles.includes(userRole)) {
