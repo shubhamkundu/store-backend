@@ -1,8 +1,34 @@
-const { validateUserBody, validateLoginBody } = require('./../utils/validator');
-const { copyPropsFromObj, comparePassword, generateToken, generateUserObj } = require('../utils/lib');
+const { validateUserBody, validateLoginBody, validateEmail } = require('./../utils/validator');
+const { copyPropsFromObj, comparePassword, generateToken, generateUserObj } = require('./../utils/lib');
 
 module.exports = ({ db }) => {
     const serviceFns = {
+        getUserByEmail: (email) => new Promise(async (resolve, reject) => {
+            try {
+                const valid = validateEmail(email);
+                if (!valid.ok) {
+                    return reject({
+                        statusCode: 400,
+                        errorMessage: valid.reason
+                    });
+                }
+
+                const user = await db.models.User.findOne({ email });
+                if (!user) {
+                    return reject({
+                        statusCode: 400,
+                        errorMessage: `User not found for email: ${email}`
+                    });
+                }
+                resolve(user);
+            } catch (e) {
+                return reject({
+                    statusCode: 500,
+                    errorMessage: e
+                });
+            }
+        }),
+
         signup: (body) => new Promise(async (resolve, reject) => {
             const now = new Date();
             try {
@@ -59,8 +85,8 @@ module.exports = ({ db }) => {
                 resolve({ token });
             } catch (e) {
                 return reject({
-                    statusCode: 500,
-                    errorMessage: e
+                    statusCode: e.statusCode || 500,
+                    errorMessage: e.errorMessage || e
                 });
             }
         })

@@ -97,7 +97,19 @@ const self = module.exports = {
 
     generateUserObj: (loggedInUser) => {
         const userObj = {};
+        userObj.userId = loggedInUser.userId;
         userObj.name = loggedInUser.name;
         userObj.email = loggedInUser.email;
+        userObj.userRole = loggedInUser.userRole;
+    },
+
+    verifyAdmin: (req, res, next) => {
+        if (req.user.userRole !== 'admin') {
+            return self.handleAPIError(req, res, {
+                statusCode: 403,
+                errorMessage: `Access denied`
+            });
+        }
+        next();
     }
 };

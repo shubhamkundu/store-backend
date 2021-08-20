@@ -1,10 +1,13 @@
 const { validateId, validateUserBody, validateEmail } = require('./../utils/validator');
-const { generateUserObj } = require('../utils/lib');
+const { generateUserObj } = require('./../utils/lib');
 
 module.exports = ({ db }) => ({
     getAllUsers: () => new Promise(async (resolve, reject) => {
         try {
             const users = await db.models.User.find();
+            users.forEach(user => {
+                delete user._doc.password;
+            })
             resolve(users);
         } catch (e) {
             return reject({
@@ -32,6 +35,7 @@ module.exports = ({ db }) => ({
                     errorMessage: `User not found for userId: ${userId}`
                 });
             }
+            delete user._doc.password;
             resolve(user);
         } catch (e) {
             return reject({
@@ -58,6 +62,7 @@ module.exports = ({ db }) => ({
                     errorMessage: `User not found for email: ${email}`
                 });
             }
+            delete user._doc.password;
             resolve(user);
         } catch (e) {
             return reject({
@@ -179,7 +184,7 @@ module.exports = ({ db }) => ({
 
             const queryObj = { userId };
             const updateObj = {
-                isDeleted: true, 
+                isDeleted: true,
                 deletedOn: now.toISOString(),
                 deletedBy: generateUserObj(loggedInUser)
             };

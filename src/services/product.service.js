@@ -1,5 +1,5 @@
 const { validateId, validateProductBody } = require('./../utils/validator');
-const { copyPropsFromObj, generateUserObj } = require('../utils/lib');
+const { copyPropsFromObj, generateUserObj } = require('./../utils/lib');
 
 module.exports = ({ db }) => ({
     getAllProducts: () => new Promise(async (resolve, reject) => {

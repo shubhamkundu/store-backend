@@ -1,6 +1,6 @@
 const express = require('express');
 const productRouter = express.Router();
-const { handleAPIError } = require('./../utils/lib');
+const { handleAPIError, verifyAdmin } = require('./../utils/lib');
 
 module.exports = ({ db }) => {
     const { productService } = require('./../services')({ db });
@@ -9,24 +9,24 @@ module.exports = ({ db }) => {
         res.send('Product test passed');
     });
 
-    productRouter.get('/', (req, res) => {
-        productService.getAllStores()
+    productRouter.get('/', verifyAdmin, (req, res) => {
+        productService.getAllProducts()
             .then(response => {
                 res.send(response);
             })
             .catch(handleAPIError.bind(null, req, res));
     });
 
-    productRouter.get('/:storeId', (req, res) => {
-        productService.getStoreByStoreId(req.params.storeId)
+    productRouter.get('/:productId', verifyAdmin, (req, res) => {
+        productService.getProductByProductId(req.params.productId)
             .then(response => {
                 res.send(response);
             })
             .catch(handleAPIError.bind(null, req, res));
     });
 
-    productRouter.post('/', (req, res) => {
-        productService.createStore(req.body, req.user)
+    productRouter.post('/', verifyAdmin, (req, res) => {
+        productService.createProduct(req.body, req.user)
             .then(response => {
                 res.send(response);
             })
@@ -34,15 +34,15 @@ module.exports = ({ db }) => {
     });
 
     productRouter.patch('/', (req, res) => {
-        productService.updateStore(req.body, req.user)
+        productService.updateProduct(req.body, req.user)
             .then(response => {
                 res.send(response);
             })
             .catch(handleAPIError.bind(null, req, res));
     });
 
-    productRouter.delete('/:storeId', (req, res) => {
-        productService.deleteStore(req.params.storeId, req.user)
+    productRouter.delete('/:productId', verifyAdmin, (req, res) => {
+        productService.deleteProduct(req.params.productId, req.user)
             .then(response => {
                 res.send(response);
             })
