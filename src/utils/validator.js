@@ -72,7 +72,7 @@ module.exports = {
         return result;
     },
 
-    validateSubUserBody: (body, requestType) => {
+    validateUserBody: (body, requestType) => {
         let updateRequired = false;
         if (requestType === 'insert' || body.name !== undefined) {
             updateRequired = true;
@@ -98,7 +98,7 @@ module.exports = {
                 };
             }
         }
-        if (requestType === 'insert' || body.password !== undefined) {
+        if (requestType === 'insert') {
             updateRequired = true;
             if (typeof body.password !== 'string' || body.password.trim() === '') {
                 return {
@@ -119,6 +119,17 @@ module.exports = {
             result.updateRequired = updateRequired;
         }
         return result;
+    },
+
+    validateUserRole: (userRole) => {
+        if (typeof userRole !== 'string'
+            || !validationConfig.allowedUserRoles.includes(userRole)) {
+            return {
+                ok: false,
+                reason: `Allowed userRoles are: ${validationConfig.allowedUserRoles}`
+            };
+        }
+        return { ok: true };
     },
 
     validateProductBody: (body, requestType) => {
@@ -155,6 +166,15 @@ module.exports = {
                 return {
                     ok: false,
                     reason: `Please provide integer value for availableQuantity in request body`
+                };
+            }
+        }
+        if (requestType === 'insert' || body.description !== undefined) {
+            updateRequired = true;
+            if (typeof body.description !== 'string' || body.description.trim() === '') {
+                return {
+                    ok: false,
+                    reason: `Please provide string value for description in request body`
                 };
             }
         }

@@ -95,11 +95,14 @@ module.exports = ({ db }) => ({
             if (body.name) {
                 updateObj.name = body.name;
             }
-            if (body.location) {
-                updateObj.location = body.location;
+            if (body.category) {
+                updateObj.category = body.category;
             }
-            if (body.phone) {
-                updateObj.phone = body.phone;
+            if (body.availableQuantity) {
+                updateObj.availableQuantity = body.availableQuantity;
+            }
+            if (body.description) {
+                updateObj.description = body.description;
             }
 
             const result = await db.models.Product.updateOne(queryObj, updateObj);
@@ -111,7 +114,7 @@ module.exports = ({ db }) => ({
                 });
             }
 
-            resolve(result);
+            resolve({ result, updateObj });
         } catch (e) {
             return reject({
                 statusCode: 500,

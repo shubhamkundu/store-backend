@@ -8,6 +8,16 @@ module.exports = {
     },
     validation: {
         phoneLength: process.env.PHONE_LENGTH || 10,
-        passwordMinLength: process.env.PASSWORD_MIN_LENGTH || 8
+        passwordMinLength: process.env.PASSWORD_MIN_LENGTH || 8,
+        allowedUserRoles:
+            process.env.ALLOWED_USER_ROLES
+                ? process.env.ALLOWED_USER_ROLES.split(',')
+                : ['subuser', 'admin']
+    },
+    encryption: {
+        bcryptSaltWorkFactor:
+            isFinite(process.env.BCRYPT_SALT_WORK_FACTOR)
+                ? parseInt(process.env.BCRYPT_SALT_WORK_FACTOR)
+                : 10
     }
 };

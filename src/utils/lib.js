@@ -1,3 +1,6 @@
+const bcrypt = require('bcrypt');
+const encryptionConfig = require('./../config/config').encryption;
+
 module.exports = {
     handleAPIError: (req, res, err) => {
         console.error(`${req.method} ${req.originalUrl} API error:`, err);
@@ -29,5 +32,29 @@ module.exports = {
             && /[0-9]/.test(password) // at least one digit
             && /[^A-Za-z0-9]/.test(password) // at least one special character
             && password.length >= passwordMinLength;  // min length
+    },
+
+    preSaveUser: function (next) {
+        const user = this;
+
+        // generate a salt
+        bcrypt.genSalt(encryptionConfig.bcryptSaltWorkFactor, (err, salt) => {
+            if (err) return next(err);
+
+            // hash the password using our new salt
+            bcrypt.hash(user.password, salt, (err, hash) => {
+                if (err) return next(err);
+                // override the cleartext password with the hashed one
+                user.password = hash;
+                next();
+            });
+        });
+    },
+
+    comparePassword: function (candidatePassword, cb) {
+        bcrypt.compare(candidatePassword, this.password, (err, isMatch) => {
+            if (err) return cb(err);
+            cb(null, isMatch);
+        });
     }
 };

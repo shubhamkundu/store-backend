@@ -111,7 +111,7 @@ module.exports = ({ db }) => ({
                 });
             }
 
-            resolve(result);
+            resolve({ result, updateObj });
         } catch (e) {
             return reject({
                 statusCode: 500,

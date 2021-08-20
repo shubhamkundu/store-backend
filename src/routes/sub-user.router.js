@@ -1,53 +1,61 @@
 const express = require('express');
-const subUserRouter = express.Router();
+const userRouter = express.Router();
 const { handleAPIError } = require('./../utils/lib');
 
 module.exports = ({ db }) => {
-    const { subUserService } = require('./../services')({ db });
+    const { userService } = require('./../services')({ db });
 
-    subUserRouter.get('/test', (req, res) => {
-        res.send('SubUser test passed');
+    userRouter.get('/test', (req, res) => {
+        res.send('User test passed');
     });
 
-    subUserRouter.get('/', (req, res) => {
-        subUserService.getAllSubUsers()
+    userRouter.get('/', (req, res) => {
+        userService.getAllUsers()
             .then(response => {
                 res.send(response);
             })
             .catch(handleAPIError.bind(null, req, res));
     });
 
-    subUserRouter.get('/:subUserId', (req, res) => {
-        subUserService.getSubUserBySubUserId(req.params.subUserId)
+    userRouter.get('/:userId', (req, res) => {
+        userService.getUserByUserId(req.params.userId)
             .then(response => {
                 res.send(response);
             })
             .catch(handleAPIError.bind(null, req, res));
     });
 
-    subUserRouter.post('/', (req, res) => {
-        subUserService.createSubUser(req.body)
+    userRouter.post('/', (req, res) => {
+        userService.createUser(req.body)
             .then(response => {
                 res.send(response);
             })
             .catch(handleAPIError.bind(null, req, res));
     });
 
-    subUserRouter.patch('/', (req, res) => {
-        subUserService.updateSubUser(req.body)
+    userRouter.patch('/', (req, res) => {
+        userService.updateUser(req.body)
             .then(response => {
                 res.send(response);
             })
             .catch(handleAPIError.bind(null, req, res));
     });
 
-    subUserRouter.delete('/:subUserId', (req, res) => {
-        subUserService.deleteSubUser(req.params.subUserId)
+    userRouter.patch('/user-role', (req, res) => {
+        userService.updateUserRole(req.body)
             .then(response => {
                 res.send(response);
             })
             .catch(handleAPIError.bind(null, req, res));
     });
 
-    return subUserRouter;
+    userRouter.delete('/:userId', (req, res) => {
+        userService.deleteUser(req.params.userId)
+            .then(response => {
+                res.send(response);
+            })
+            .catch(handleAPIError.bind(null, req, res));
+    });
+
+    return userRouter;
 };

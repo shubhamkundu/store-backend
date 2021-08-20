@@ -1,10 +1,10 @@
-const { validateId, validateSubUserBody } = require('./../utils/validator');
+const { validateId, validateUserBody } = require('./../utils/validator');
 
 module.exports = ({ db }) => ({
-    getAllSubUsers: () => new Promise(async (resolve, reject) => {
+    getAllUsers: () => new Promise(async (resolve, reject) => {
         try {
-            const subUsers = await db.models.SubUser.find();
-            resolve(subUsers);
+            const users = await db.models.User.find();
+            resolve(users);
         } catch (e) {
             return reject({
                 statusCode: 500,
@@ -13,25 +13,25 @@ module.exports = ({ db }) => ({
         }
     }),
 
-    getSubUserBySubUserId: (subUserIdStr) => new Promise(async (resolve, reject) => {
+    getUserByUserId: (userIdStr) => new Promise(async (resolve, reject) => {
         try {
-            const valid = validateId('subUserId', subUserIdStr, 'path');
+            const valid = validateId('userId', userIdStr, 'path');
             if (!valid.ok) {
                 return reject({
                     statusCode: 400,
                     errorMessage: valid.reason
                 });
             }
-            const subUserId = valid.value;
+            const userId = valid.value;
 
-            const subUser = await db.models.SubUser.findOne({ subUserId });
-            if (!subUser) {
+            const user = await db.models.User.findOne({ userId });
+            if (!user) {
                 return reject({
                     statusCode: 400,
-                    errorMessage: `SubUser not found for subUserId: ${subUserId}`
+                    errorMessage: `User not found for userId: ${userId}`
                 });
             }
-            resolve(subUser);
+            resolve(user);
         } catch (e) {
             return reject({
                 statusCode: 500,
@@ -40,9 +40,9 @@ module.exports = ({ db }) => ({
         }
     }),
 
-    createSubUser: (body) => new Promise(async (resolve, reject) => {
+    createUser: (body) => new Promise(async (resolve, reject) => {
         try {
-            const valid = validateSubUserBody(body, 'insert');
+            const valid = validateUserBody(body, 'insert');
             if (!valid.ok) {
                 return reject({
                     statusCode: 400,
@@ -50,12 +50,13 @@ module.exports = ({ db }) => ({
                 });
             }
 
-            const subUserDoc = {
-                subUserId: new Date().getTime(),
+            const userDoc = {
+                userId: new Date().getTime(),
                 ...body
             };
 
-            const result = await db.models.SubUser.create(subUserDoc);
+            const result = await db.models.User.create(userDoc);
+            delete result._doc.password;
             resolve(result);
         } catch (e) {
             return reject({
@@ -65,18 +66,19 @@ module.exports = ({ db }) => ({
         }
     }),
 
-    updateSubUser: (body) => new Promise(async (resolve, reject) => {
+    updateUser: (body) => new Promise(async (resolve, reject) => {
+        const now = new Date();
         try {
-            let valid = validateId('subUserId', body.subUserId, 'body');
+            let valid = validateId('userId', body.userId, 'body');
             if (!valid.ok) {
                 return reject({
                     statusCode: 400,
                     errorMessage: valid.reason
                 });
             }
-            body.subUserId = valid.value;
+            body.userId = valid.value;
 
-            valid = validateSubUserBody(body, 'update');
+            valid = validateUserBody(body, 'update');
             if (!valid.ok) {
                 return reject({
                     statusCode: 400,
@@ -90,28 +92,26 @@ module.exports = ({ db }) => ({
                 });
             }
 
-            const queryObj = { subUserId: body.subUserId };
+            const queryObj = { userId: body.userId };
             const updateObj = {};
             if (body.name) {
                 updateObj.name = body.name;
             }
-            if (body.location) {
-                updateObj.location = body.location;
+            if (body.email) {
+                updateObj.email = body.email;
             }
-            if (body.phone) {
-                updateObj.phone = body.phone;
-            }
+            updateObj.updatedOn = now.toISOString()
 
-            const result = await db.models.SubUser.updateOne(queryObj, updateObj);
+            const result = await db.models.User.updateOne(queryObj, updateObj);
 
             if (result.n === 0) {
                 return reject({
                     statusCode: 400,
-                    errorMessage: `SubUser not found against against subUserId: ${queryObj.subUserId}`
+                    errorMessage: `User not found against against userId: ${queryObj.userId}`
                 });
             }
 
-            resolve(result);
+            resolve({ result, updateObj });
         } catch (e) {
             return reject({
                 statusCode: 500,
@@ -120,23 +120,61 @@ module.exports = ({ db }) => ({
         }
     }),
 
-    deleteSubUser: (subUserIdStr) => new Promise(async (resolve, reject) => {
+    updateUserRole: (body) => new Promise(async (resolve, reject) => {
         try {
-            const valid = validateId('subUserId', subUserIdStr, 'path');
+            let valid = validateId('userId', body.userId, 'body');
             if (!valid.ok) {
                 return reject({
                     statusCode: 400,
                     errorMessage: valid.reason
                 });
             }
-            const subUserId = valid.value;
 
-            const result = await db.models.SubUser.deleteOne({ subUserId });
+            valid = validateUserRole(body.userRole);
+            if (!valid.ok) {
+                return reject({
+                    statusCode: 400,
+                    errorMessage: valid.reason
+                });
+            }
+
+            const queryObj = { userId };
+            const updateObj = { userRole };
+            const result = await db.models.User.updateOne(queryObj, updateObj);
 
             if (result.n === 0) {
                 return reject({
                     statusCode: 400,
-                    errorMessage: `SubUser not found against against subUserId: ${subUserId}`
+                    errorMessage: `User not found against against userId: ${queryObj.userId}`
+                });
+            }
+
+            resolve({ result, updateObj });
+        } catch (e) {
+            return reject({
+                statusCode: 500,
+                errorMessage: e
+            });
+        }
+    }),
+
+    deleteUser: (userIdStr) => new Promise(async (resolve, reject) => {
+        try {
+            const valid = validateId('userId', userIdStr, 'path');
+            if (!valid.ok) {
+                return reject({
+                    statusCode: 400,
+                    errorMessage: valid.reason
+                });
+            }
+            const userId = valid.value;
+
+            const result = await db.models.User.deleteOne({ userId });
+
+            if (result.n === 0) {
+                return reject({
+                    statusCode: 400,
+                    errorMessage: `User not found against against userId: ${userId}`
                 });
             }
 

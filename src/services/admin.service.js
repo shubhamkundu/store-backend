@@ -56,6 +56,7 @@ module.exports = ({ db }) => ({
             };
 
             const result = await db.models.Admin.create(adminDoc);
+            delete result._doc.password;
             resolve(result);
         } catch (e) {
             return reject({
@@ -95,11 +96,8 @@ module.exports = ({ db }) => ({
             if (body.name) {
                 updateObj.name = body.name;
             }
-            if (body.location) {
-                updateObj.location = body.location;
-            }
-            if (body.phone) {
-                updateObj.phone = body.phone;
+            if (body.email) {
+                updateObj.email = body.email;
             }
 
             const result = await db.models.Admin.updateOne(queryObj, updateObj);
@@ -111,7 +109,7 @@ module.exports = ({ db }) => ({
                 });
             }
 
-            resolve(result);
+            resolve({ result, updateObj });
         } catch (e) {
             return reject({
                 statusCode: 500,
