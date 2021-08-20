@@ -56,5 +56,13 @@ module.exports = {
             if (err) return cb(err);
             cb(null, isMatch);
         });
+    },
+
+    copyPropsFromObj: (propArr, obj) => {
+        const newObj = {};
+        for (const prop of propArr) {
+            newObj.prop = obj.prop;
+        }
+        return newObj;
     }
 };

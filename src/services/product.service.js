@@ -1,4 +1,5 @@
 const { validateId, validateProductBody } = require('./../utils/validator');
+const { copyPropsFromObj } = require('../utils/lib');
 
 module.exports = ({ db }) => ({
     getAllProducts: () => new Promise(async (resolve, reject) => {
@@ -41,6 +42,7 @@ module.exports = ({ db }) => ({
     }),
 
     createProduct: (body) => new Promise(async (resolve, reject) => {
+        const now = new Date();
         try {
             const valid = validateProductBody(body, 'insert');
             if (!valid.ok) {
@@ -52,7 +54,8 @@ module.exports = ({ db }) => ({
 
             const productDoc = {
                 productId: new Date().getTime(),
-                ...body
+                ...copyPropsFromObj(['name', 'category', 'availableQuantity', 'description'], body),
+                createdOn: now.toISOString()
             };
 
             const result = await db.models.Product.create(productDoc);
@@ -66,6 +69,7 @@ module.exports = ({ db }) => ({
     }),
 
     updateProduct: (body) => new Promise(async (resolve, reject) => {
+        const now = new Date();
         try {
             let valid = validateId('productId', body.productId, 'body');
             if (!valid.ok) {
@@ -104,6 +108,7 @@ module.exports = ({ db }) => ({
             if (body.description) {
                 updateObj.description = body.description;
             }
+            updateObj.updatedOn = now.toISOString();
 
             const result = await db.models.Product.updateOne(queryObj, updateObj);
 
@@ -124,6 +129,7 @@ module.exports = ({ db }) => ({
     }),
 
     deleteProduct: (productIdStr) => new Promise(async (resolve, reject) => {
+        const now = new Date();
         try {
             const valid = validateId('productId', productIdStr, 'path');
             if (!valid.ok) {
@@ -134,7 +140,9 @@ module.exports = ({ db }) => ({
             }
             const productId = valid.value;
 
-            const result = await db.models.Product.deleteOne({ productId });
+            const queryObj = { productId };
+            const updateObj = { isDeleted: true, deletedOn: now.toISOString() };
+            const result = await db.models.Product.updateOne(queryObj, updateObj);
 
             if (result.n === 0) {
                 return reject({

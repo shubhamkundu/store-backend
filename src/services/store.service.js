@@ -1,4 +1,5 @@
 const { validateId, validateStoreBody } = require('./../utils/validator');
+const { copyPropsFromObj } = require('../utils/lib');
 
 module.exports = ({ db }) => ({
     getAllStores: () => new Promise(async (resolve, reject) => {
@@ -41,6 +42,7 @@ module.exports = ({ db }) => ({
     }),
 
     createStore: (body) => new Promise(async (resolve, reject) => {
+        const now = new Date();
         try {
             const valid = validateStoreBody(body, 'insert');
             if (!valid.ok) {
@@ -52,7 +54,8 @@ module.exports = ({ db }) => ({
 
             const storeDoc = {
                 storeId: new Date().getTime(),
-                ...body
+                ...copyPropsFromObj(['name', 'location', 'phone'], body),
+                createdOn: now.toISOString()
             };
 
             const result = await db.models.Store.create(storeDoc);
@@ -66,6 +69,7 @@ module.exports = ({ db }) => ({
     }),
 
     updateStore: (body) => new Promise(async (resolve, reject) => {
+        const now = new Date();
         try {
             let valid = validateId('storeId', body.storeId, 'body');
             if (!valid.ok) {
@@ -101,6 +105,7 @@ module.exports = ({ db }) => ({
             if (body.phone) {
                 updateObj.phone = body.phone;
             }
+            updateObj.updatedOn = now.toISOString();
 
             const result = await db.models.Store.updateOne(queryObj, updateObj);
 
@@ -121,6 +126,7 @@ module.exports = ({ db }) => ({
     }),
 
     deleteStore: (storeIdStr) => new Promise(async (resolve, reject) => {
+        const now = new Date();
         try {
             const valid = validateId('storeId', storeIdStr, 'path');
             if (!valid.ok) {
@@ -131,7 +137,9 @@ module.exports = ({ db }) => ({
             }
             const storeId = valid.value;
 
-            const result = await db.models.Store.deleteOne({ storeId });
+            const queryObj = { storeId };
+            const updateObj = { isDeleted: true, deletedOn: now.toISOString() };
+            const result = await db.models.Store.updateOne(queryObj, updateObj);
 
             if (result.n === 0) {
                 return reject({

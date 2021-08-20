@@ -7,7 +7,8 @@ module.exports = (mongoose) => {
         email: { type: String, required: true, unique: true },
         password: { type: String, required: true },
         createdOn: { type: String, required: true },
-        updatedOn: { type: String }
+        updatedOn: { type: String },
+        deletedOn: { type: String }
     });
     adminSchema.pre('save', preSaveUser);
     adminSchema.methods.comparePassword = comparePassword;
@@ -18,7 +19,8 @@ module.exports = (mongoose) => {
         location: { type: String, required: true, unique: true },
         phone: { type: Number, required: true, unique: true },
         createdOn: { type: String, required: true },
-        updatedOn: { type: String }
+        updatedOn: { type: String },
+        deletedOn: { type: String }
     });
 
     const userSchema = new mongoose.Schema({
@@ -27,7 +29,8 @@ module.exports = (mongoose) => {
         email: { type: String, required: true, unique: true },
         password: { type: String, required: true },
         createdOn: { type: String, required: true },
-        updatedOn: { type: String }
+        updatedOn: { type: String },
+        deletedOn: { type: String }
     });
     userSchema.pre('save', preSaveUser);
     userSchema.methods.comparePassword = comparePassword;
@@ -39,7 +42,8 @@ module.exports = (mongoose) => {
         availableQuantity: { type: Number, required: true, min: 0 },
         description: { type: String },
         createdOn: { type: String, required: true },
-        updatedOn: { type: String }
+        updatedOn: { type: String },
+        deletedOn: { type: String }
     });
 
     mongoose.model('Admin', adminSchema);
