@@ -5,5 +5,9 @@ module.exports = {
         host: process.env.DB_HOST || '',
         port: process.env.DB_PORT || '',
         dbname: process.env.DB_DBNAME || ''
+    },
+    validation: {
+        phoneLength: process.env.PHONE_LENGTH || 10,
+        passwordMinLength: process.env.PASSWORD_MIN_LENGTH || 8
     }
 };

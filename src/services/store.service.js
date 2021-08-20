@@ -1,4 +1,4 @@
-const { validateId, validateStoreBody, validateStoreUpdateObj } = require('./../utils/validator');
+const { validateId, validateStoreBody } = require('./../utils/validator');
 
 module.exports = ({ db }) => ({
     getAllStores: () => new Promise(async (resolve, reject) => {
@@ -42,7 +42,7 @@ module.exports = ({ db }) => ({
 
     createStore: (body) => new Promise(async (resolve, reject) => {
         try {
-            const valid = validateStoreBody(body);
+            const valid = validateStoreBody(body, 'insert');
             if (!valid.ok) {
                 return reject({
                     statusCode: 400,
@@ -76,35 +76,30 @@ module.exports = ({ db }) => ({
             }
             body.storeId = valid.value;
 
-            const queryObj = { storeId: body.storeId };
-            const updateObj = {};
-            let updateRequired = false;
-            if (body.name) {
-                updateObj.name = body.name;
-                updateRequired = true;
+            valid = validateStoreBody(body, 'update');
+            if (!valid.ok) {
+                return reject({
+                    statusCode: 400,
+                    errorMessage: valid.reason
+                });
             }
-            if (body.location) {
-                updateObj.location = body.location;
-                updateRequired = true;
-            }
-            if (body.phone) {
-                updateObj.phone = body.phone;
-                updateRequired = true;
-            }
-
-            if (!updateRequired) {
+            if (!valid.updateRequired) {
                 return reject({
                     statusCode: 400,
                     errorMessage: `Provide at least one value to update`
                 });
             }
 
-            valid = validateStoreUpdateObj(updateObj);
-            if (!valid.ok) {
-                return reject({
-                    statusCode: 400,
-                    errorMessage: valid.reason
-                });
+            const queryObj = { storeId: body.storeId };
+            const updateObj = {};
+            if (body.name) {
+                updateObj.name = body.name;
+            }
+            if (body.location) {
+                updateObj.location = body.location;
+            }
+            if (body.phone) {
+                updateObj.phone = body.phone;
             }
 
             const result = await db.models.Store.updateOne(queryObj, updateObj);

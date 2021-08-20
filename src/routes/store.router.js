@@ -6,7 +6,7 @@ module.exports = ({ db }) => {
     const { storeService } = require('./../services')({ db });
 
     storeRouter.get('/test', (req, res) => {
-        res.send('test passed');
+        res.send('Store test passed');
     });
 
     storeRouter.get('/', (req, res) => {
