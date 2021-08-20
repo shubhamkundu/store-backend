@@ -1,10 +1,9 @@
-const { validateId, validateUserBody, validateEmail } = require('./../utils/validator');
-const { generateUserObj } = require('./../utils/lib');
+const { validateId, validateUserBody, validateEmail, validateUserRole } = require('./../utils/validator');
 
 module.exports = ({ db }) => ({
     getAllUsers: () => new Promise(async (resolve, reject) => {
         try {
-            const users = await db.models.User.find();
+            const users = await db.models.User.find({ isDeleted: { $ne: true } });
             users.forEach(user => {
                 delete user._doc.password;
             })
@@ -28,10 +27,10 @@ module.exports = ({ db }) => ({
             }
             const userId = valid.value;
 
-            const user = await db.models.User.findOne({ userId });
+            const user = await db.models.User.findOne({ userId, isDeleted: { $ne: true } });
             if (!user) {
                 return reject({
-                    statusCode: 400,
+                    statusCode: 404,
                     errorMessage: `User not found for userId: ${userId}`
                 });
             }
@@ -55,10 +54,10 @@ module.exports = ({ db }) => ({
                 });
             }
 
-            const user = await db.models.User.findOne({ email });
+            const user = await db.models.User.findOne({ email, isDeleted: { $ne: true } });
             if (!user) {
                 return reject({
-                    statusCode: 400,
+                    statusCode: 404,
                     errorMessage: `User not found for email: ${email}`
                 });
             }
@@ -98,7 +97,7 @@ module.exports = ({ db }) => ({
                 });
             }
 
-            const queryObj = { userId: body.userId };
+            const queryObj = { userId: body.userId, isDeleted: { $ne: true } };
             const updateObj = {};
             if (body.name) {
                 updateObj.name = body.name;
@@ -107,14 +106,14 @@ module.exports = ({ db }) => ({
                 updateObj.email = body.email;
             }
             updateObj.updatedOn = now.toISOString();
-            updateObj.updatedBy = generateUserObj(loggedInUser);
+            updateObj.updatedBy = loggedInUser.userId;
 
             const result = await db.models.User.updateOne(queryObj, updateObj);
 
             if (result.n === 0) {
                 return reject({
-                    statusCode: 400,
-                    errorMessage: `User not found against against userId: ${queryObj.userId}`
+                    statusCode: 404,
+                    errorMessage: `User not found against userId: ${queryObj.userId}`
                 });
             }
 
@@ -137,6 +136,7 @@ module.exports = ({ db }) => ({
                     errorMessage: valid.reason
                 });
             }
+            body.userId = valid.value;
 
             valid = validateUserRole(body.userRole);
             if (!valid.ok) {
@@ -146,18 +146,18 @@ module.exports = ({ db }) => ({
                 });
             }
 
-            const queryObj = { userId };
+            const queryObj = { userId: body.userId, isDeleted: { $ne: true } };
             const updateObj = {
-                userRole,
+                userRole: body.userRole,
                 updatedOn: now.toISOString(),
-                updatedBy: generateUserObj(loggedInUser)
+                updatedBy: loggedInUser.userId
             };
             const result = await db.models.User.updateOne(queryObj, updateObj);
 
             if (result.n === 0) {
                 return reject({
-                    statusCode: 400,
-                    errorMessage: `User not found against against userId: ${queryObj.userId}`
+                    statusCode: 404,
+                    errorMessage: `User not found against userId: ${queryObj.userId}`
                 });
             }
 
@@ -182,22 +182,32 @@ module.exports = ({ db }) => ({
             }
             const userId = valid.value;
 
-            const queryObj = { userId };
+            const queryObj = { userId, isDeleted: { $ne: true } };
             const updateObj = {
                 isDeleted: true,
                 deletedOn: now.toISOString(),
-                deletedBy: generateUserObj(loggedInUser)
+                deletedBy: loggedInUser.userId
             };
-            const result = await db.models.User.updateOne(queryObj, updateObj);
+            const userDeleteResult = await db.models.User.updateOne(queryObj, updateObj);
 
-            if (result.n === 0) {
+            if (userDeleteResult.n === 0) {
                 return reject({
-                    statusCode: 400,
-                    errorMessage: `User not found against against userId: ${userId}`
+                    statusCode: 404,
+                    errorMessage: `User not found against userId: ${userId}`
                 });
             }
 
-            resolve({ result, updateObj });
+            const store = await db.models.Store
+                .findOne({ storeOwner: userId, isDeleted: { $ne: true } });
+            let storeDeleteResult = null, productDeleteResult = null;
+            if (store) {
+                const storeQueryObj = { storeId: store.storeId, isDeleted: { $ne: true } };
+                storeDeleteResult = await db.models.Store.updateOne(storeQueryObj, updateObj);
+                const productQueryObj = storeQueryObj;
+                productDeleteResult = await db.models.Product.update(productQueryObj, updateObj);
+            }
+
+            resolve({ userDeleteResult, storeDeleteResult, productDeleteResult });
         } catch (e) {
             return reject({
                 statusCode: 500,

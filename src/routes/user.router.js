@@ -25,7 +25,7 @@ module.exports = ({ db }) => {
             .catch(handleAPIError.bind(null, req, res));
     });
 
-    userRouter.get('/:userId', verifyAdmin, verifyAdmin, (req, res) => {
+    userRouter.get('/:userId', verifyAdmin, (req, res) => {
         userService.getUserByEmail(req.params.email)
             .then(response => {
                 res.send(response);

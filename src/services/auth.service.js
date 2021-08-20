@@ -1,5 +1,5 @@
 const { validateUserBody, validateLoginBody, validateEmail } = require('./../utils/validator');
-const { copyPropsFromObj, comparePassword, generateToken, generateUserObj } = require('./../utils/lib');
+const { copyPropsFromObj, comparePassword, generateToken } = require('./../utils/lib');
 
 module.exports = ({ db }) => {
     const serviceFns = {
@@ -13,10 +13,10 @@ module.exports = ({ db }) => {
                     });
                 }
 
-                const user = await db.models.User.findOne({ email });
+                const user = await db.models.User.findOne({ email, isDeleted: { $ne: true } });
                 if (!user) {
                     return reject({
-                        statusCode: 400,
+                        statusCode: 404,
                         errorMessage: `User not found for email: ${email}`
                     });
                 }
@@ -43,8 +43,7 @@ module.exports = ({ db }) => {
                 const userDoc = {
                     userId: new Date().getTime(),
                     ...copyPropsFromObj(['name', 'email', 'password'], body),
-                    createdOn: now.toISOString(),
-                    createdBy: generateUserObj(loggedInUser)
+                    createdOn: now.toISOString()
                 };
 
                 const result = await db.models.User.create(userDoc);

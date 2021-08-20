@@ -95,13 +95,14 @@ const self = module.exports = {
         next();
     },
 
-    generateUserObj: (loggedInUser) => {
-        const userObj = {};
-        userObj.userId = loggedInUser.userId;
-        userObj.name = loggedInUser.name;
-        userObj.email = loggedInUser.email;
-        userObj.userRole = loggedInUser.userRole;
-    },
+    // generateUserObj: (loggedInUser) => {
+    //     const userObj = {};
+    //     userObj.userId = loggedInUser.userId;
+    //     userObj.name = loggedInUser.name;
+    //     userObj.email = loggedInUser.email;
+    //     userObj.userRole = loggedInUser.userRole;
+    //     return userObj;
+    // },
 
     verifyAdmin: (req, res, next) => {
         if (req.user.userRole !== 'admin') {

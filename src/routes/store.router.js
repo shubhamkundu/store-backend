@@ -25,6 +25,14 @@ module.exports = ({ db }) => {
             .catch(handleAPIError.bind(null, req, res));
     });
 
+    storeRouter.get('/by-store-owner', (req, res) => {
+        storeService.getStoreByStoreOwner(req.user)
+            .then(response => {
+                res.send(response);
+            })
+            .catch(handleAPIError.bind(null, req, res));
+    });
+
     storeRouter.post('/', verifyAdmin, (req, res) => {
         storeService.createStore(req.body, req.user)
             .then(response => {

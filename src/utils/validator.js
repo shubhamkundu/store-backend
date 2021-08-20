@@ -10,7 +10,7 @@ module.exports = {
             }
         }
         const id = parseInt(idStr);
-        if (isNaN(id) || id <= 0) {
+        if (!Number.isInteger(id)) {
             return {
                 ok: false,
                 reason: `Please provide a positive integer value for ${idName}`
@@ -61,6 +61,22 @@ module.exports = {
                 return {
                     ok: false,
                     reason: `Please provide 10-digit integer value for phone in request body`
+                };
+            }
+        }
+        if (requestType === 'insert' || body.storeOwner !== undefined) {
+            updateRequired = true;
+            if (typeof body.storeOwner !== 'string' || body.storeOwner.trim() === '') {
+                return {
+                    ok: false,
+                    reason: `Please provide value for storeOwner in request body`
+                };
+            }
+            body.storeOwner = parseInt(body.storeOwner);
+            if (!Number.isInteger(body.storeOwner)) {
+                return {
+                    ok: false,
+                    reason: `Please provide integer value for storeOwner in request body`
                 };
             }
         }
@@ -213,6 +229,22 @@ module.exports = {
                 return {
                     ok: false,
                     reason: `Please provide string value for description in request body`
+                };
+            }
+        }
+        if (requestType === 'insert' && body.storeId !== undefined) {
+            updateRequired = true;
+            if (typeof body.storeId !== 'string' || body.storeId.trim() === '') {
+                return {
+                    ok: false,
+                    reason: `Please provide value for storeId in request body`
+                };
+            }
+            body.storeId = parseInt(body.storeId);
+            if (!Number.isInteger(body.storeId)) {
+                return {
+                    ok: false,
+                    reason: `Please provide integer value for storeId in request body`
                 };
             }
         }

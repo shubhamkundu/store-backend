@@ -1,10 +1,10 @@
 const { validateId, validateStoreBody } = require('./../utils/validator');
-const { copyPropsFromObj, generateUserObj } = require('./../utils/lib');
+const { copyPropsFromObj } = require('./../utils/lib');
 
 module.exports = ({ db }) => ({
     getAllStores: () => new Promise(async (resolve, reject) => {
         try {
-            const stores = await db.models.Store.find();
+            const stores = await db.models.Store.find({ isDeleted: { $ne: true } });
             resolve(stores);
         } catch (e) {
             return reject({
@@ -25,13 +25,26 @@ module.exports = ({ db }) => ({
             }
             const storeId = valid.value;
 
-            const store = await db.models.Store.findOne({ storeId });
+            const store = await db.models.Store.findOne({ storeId, isDeleted: { $ne: true } });
             if (!store) {
                 return reject({
-                    statusCode: 400,
+                    statusCode: 404,
                     errorMessage: `Store not found for storeId: ${storeId}`
                 });
             }
+            resolve(store);
+        } catch (e) {
+            return reject({
+                statusCode: 500,
+                errorMessage: e
+            });
+        }
+    }),
+
+    getStoreByStoreOwner: (loggedInUser) => new Promise(async (resolve, reject) => {
+        try {
+            const store = await db.models.Store
+                .findOne({ storeOwner: loggedInUser.userId, isDeleted: { $ne: true } });
             resolve(store);
         } catch (e) {
             return reject({
@@ -54,9 +67,9 @@ module.exports = ({ db }) => ({
 
             const storeDoc = {
                 storeId: now.getTime(),
-                ...copyPropsFromObj(['name', 'location', 'phone'], body),
+                ...copyPropsFromObj(['name', 'location', 'phone', 'storeOwner'], body),
                 createdOn: now.toISOString(),
-                createdBy: generateUserObj(loggedInUser)
+                createdBy: loggedInUser.userId
             };
 
             const result = await db.models.Store.create(storeDoc);
@@ -95,7 +108,7 @@ module.exports = ({ db }) => ({
                 });
             }
 
-            const queryObj = { storeId: body.storeId };
+            const queryObj = { storeId: body.storeId, isDeleted: { $ne: true } };
             const updateObj = {};
             if (body.name) {
                 updateObj.name = body.name;
@@ -107,13 +120,13 @@ module.exports = ({ db }) => ({
                 updateObj.phone = body.phone;
             }
             updateObj.updatedOn = now.toISOString();
-            updateObj.updatedBy = generateUserObj(loggedInUser);
+            updateObj.updatedBy = loggedInUser.userId;
 
             const result = await db.models.Store.updateOne(queryObj, updateObj);
 
             if (result.n === 0) {
                 return reject({
-                    statusCode: 400,
+                    statusCode: 404,
                     errorMessage: `Store not found against against storeId: ${queryObj.storeId}`
                 });
             }
@@ -139,22 +152,24 @@ module.exports = ({ db }) => ({
             }
             const storeId = valid.value;
 
-            const queryObj = { storeId };
+            const queryObj = { storeId, isDeleted: { $ne: true } };
             const updateObj = {
-                isDeleted: true, 
+                isDeleted: true,
                 deletedOn: now.toISOString(),
-                deletedBy: generateUserObj(loggedInUser)
+                deletedBy: loggedInUser.userId
             };
-            const result = await db.models.Store.updateOne(queryObj, updateObj);
+            const storeDeleteResult = await db.models.Store.updateOne(queryObj, updateObj);
 
-            if (result.n === 0) {
+            if (storeDeleteResult.n === 0) {
                 return reject({
-                    statusCode: 400,
-                    errorMessage: `Store not found against against storeId: ${storeId}`
+                    statusCode: 404,
+                    errorMessage: `Store not found against storeId: ${storeId}`
                 });
             }
 
-            resolve(result);
+            const productDeleteResult = await db.models.Product.update(queryObj, updateObj);
+
+            resolve({ storeDeleteResult, productDeleteResult });
         } catch (e) {
             return reject({
                 statusCode: 500,

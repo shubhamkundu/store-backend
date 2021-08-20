@@ -25,7 +25,15 @@ module.exports = ({ db }) => {
             .catch(handleAPIError.bind(null, req, res));
     });
 
-    productRouter.post('/', verifyAdmin, (req, res) => {
+    productRouter.get('/:storeId', (req, res) => {
+        productService.getProductsByStoreId(req.params.storeId, req.user)
+            .then(response => {
+                res.send(response);
+            })
+            .catch(handleAPIError.bind(null, req, res));
+    });
+
+    productRouter.post('/', (req, res) => {
         productService.createProduct(req.body, req.user)
             .then(response => {
                 res.send(response);
@@ -41,7 +49,7 @@ module.exports = ({ db }) => {
             .catch(handleAPIError.bind(null, req, res));
     });
 
-    productRouter.delete('/:productId', verifyAdmin, (req, res) => {
+    productRouter.delete('/:productId', (req, res) => {
         productService.deleteProduct(req.params.productId, req.user)
             .then(response => {
                 res.send(response);

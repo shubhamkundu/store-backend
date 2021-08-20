@@ -6,12 +6,14 @@ module.exports = (mongoose) => {
         name: { type: String, required: true },
         location: { type: String, required: true, unique: true },
         phone: { type: Number, required: true, unique: true },
+        storeOwner: { type: Number, required: true, unique: true },
         createdOn: { type: String, required: true },
+        createdBy: { type: Number, required: true },
         updatedOn: { type: String },
+        updatedBy: { type: Number },
+        isDeleted: { type: Boolean, default: false },
         deletedOn: { type: String },
-        createdBy: { type: String, required: true },
-        updatedBy: { type: String },
-        deletedBy: { type: String }
+        deletedBy: { type: Number }
     });
 
     const userSchema = new mongoose.Schema({
@@ -19,12 +21,13 @@ module.exports = (mongoose) => {
         name: { type: String, required: true },
         email: { type: String, required: true, unique: true },
         password: { type: String, required: true },
+        userRole: { type: String },
         createdOn: { type: String, required: true },
         updatedOn: { type: String },
+        updatedBy: { type: Number },
+        isDeleted: { type: Boolean, default: false },
         deletedOn: { type: String },
-        createdBy: { type: String, required: true },
-        updatedBy: { type: String },
-        deletedBy: { type: String }
+        deletedBy: { type: Number }
     });
     userSchema.pre('save', preSaveUser);
 
@@ -34,12 +37,14 @@ module.exports = (mongoose) => {
         category: { type: String, required: true },
         availableQuantity: { type: Number, required: true, min: 0 },
         description: { type: String },
+        storeId: { type: Number, required: true },
         createdOn: { type: String, required: true },
+        createdBy: { type: Number, required: true },
         updatedOn: { type: String },
+        updatedBy: { type: Number },
+        isDeleted: { type: Boolean, default: false },
         deletedOn: { type: String },
-        createdBy: { type: String, required: true },
-        updatedBy: { type: String },
-        deletedBy: { type: String }
+        deletedBy: { type: Number }
     });
 
     mongoose.model('Store', storeSchema);
