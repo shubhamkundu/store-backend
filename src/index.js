@@ -3,6 +3,7 @@ require('dotenv').config();
 
 // import dependencies
 const express = require('express');
+const cors = require('cors');
 
 // import local dependencies
 require('./utils/error-handler');
@@ -16,6 +17,7 @@ const app = express();
 // use middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(cors());
 
 // use router middlewares
 app.use('/auth', authRouter);
