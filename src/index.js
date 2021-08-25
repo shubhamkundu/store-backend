@@ -9,15 +9,15 @@ const cors = require('cors');
 require('./utils/error-handler');
 const { verifyToken } = require('./utils/lib');
 const { db } = require('./db');
-const { authRouter, adminRouter, storeRouter, userRouter, productRouter } = require('./routes')({ db });
+const { authRouter, storeRouter, userRouter, productRouter } = require('./routes')({ db });
 
 // initialize express app
 const app = express();
 
 // use middlewares
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cors());
 
 // use router middlewares
 app.use('/auth', authRouter);

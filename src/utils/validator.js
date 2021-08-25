@@ -128,6 +128,18 @@ module.exports = {
                     reason: `Please provide valid password in request body. password should be at least ${validationConfig.passwordMinLength} characters long and should contain at least one capital letter, at least one small letter, at least one digit, at least one special character.`
                 };
             }
+            if (typeof body.confirmPassword !== 'string' || body.confirmPassword.trim() === '') {
+                return {
+                    ok: false,
+                    reason: `Please provide value for confirmPassword in request body`
+                };
+            }
+            if (body.password !== body.confirmPassword) {
+                return {
+                    ok: false,
+                    reason: `confirmPassword should match with password`
+                };
+            }
         }
 
         const result = { ok: 1 };

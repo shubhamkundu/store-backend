@@ -40,6 +40,14 @@ module.exports = ({ db }) => {
                     });
                 }
 
+                const user = await db.models.User.findOne({ email: body.email });
+                if (user) {
+                    return reject({
+                        statusCode: 400,
+                        errorMessage: 'Email already exists.'
+                    });
+                }
+
                 const userDoc = {
                     userId: new Date().getTime(),
                     ...copyPropsFromObj(['name', 'email', 'password'], body),
@@ -81,7 +89,7 @@ module.exports = ({ db }) => {
                 delete user._doc.__v;
                 delete user._doc.password;
                 const token = generateToken(user._doc);
-                resolve({ token });
+                resolve({ token, user: user._doc });
             } catch (e) {
                 return reject({
                     statusCode: e.statusCode || 500,
