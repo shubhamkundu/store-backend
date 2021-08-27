@@ -76,15 +76,15 @@ const self = module.exports = {
     },
 
     verifyToken: (req, res, next) => {
-        if (typeof req.headers.token !== 'string' || req.headers.token.trim() === '') {
+        if (typeof req.headers.authorization !== 'string' || req.headers.authorization.trim() === '') {
             return self.handleAPIError(req, res, {
                 statusCode: 401,
-                errorMessage: `Please provide token in request headers`
+                errorMessage: `Please provide authorization in request headers`
             });
         }
         let user;
         try {
-            user = jwt.verify(req.headers.token, encryptionConfig.jwtSecret);
+            user = jwt.verify(req.headers.authorization, encryptionConfig.jwtSecret);
         } catch (e) {
             return self.handleAPIError(req, res, {
                 statusCode: 401,

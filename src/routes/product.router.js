@@ -17,16 +17,16 @@ module.exports = ({ db }) => {
             .catch(handleAPIError.bind(null, req, res));
     });
 
-    productRouter.get('/:productId', verifyAdmin, (req, res) => {
-        productService.getProductByProductId(req.params.productId)
+    productRouter.get('/by-product-id', verifyAdmin, (req, res) => {
+        productService.getProductByProductId(req.query.productId)
             .then(response => {
                 res.send(response);
             })
             .catch(handleAPIError.bind(null, req, res));
     });
 
-    productRouter.get('/:storeId', (req, res) => {
-        productService.getProductsByStoreId(req.params.storeId, req.user)
+    productRouter.get('/by-store-id', (req, res) => {
+        productService.getProductsByStoreId(req.query.storeId, req.user)
             .then(response => {
                 res.send(response);
             })
@@ -49,8 +49,8 @@ module.exports = ({ db }) => {
             .catch(handleAPIError.bind(null, req, res));
     });
 
-    productRouter.delete('/:productId', (req, res) => {
-        productService.deleteProduct(req.params.productId, req.user)
+    productRouter.delete('/', (req, res) => {
+        productService.deleteProduct(req.query.productId, req.user)
             .then(response => {
                 res.send(response);
             })

@@ -9,7 +9,13 @@ const cors = require('cors');
 require('./utils/error-handler');
 const { verifyToken } = require('./utils/lib');
 const { db } = require('./db');
-const { authRouter, storeRouter, userRouter, productRouter } = require('./routes')({ db });
+const {
+    authRouter,
+    storeRouter,
+    userRouter,
+    productRouter,
+    categoryRouter
+} = require('./routes')({ db });
 
 // initialize express app
 const app = express();
@@ -24,6 +30,7 @@ app.use('/auth', authRouter);
 app.use('/store', verifyToken, storeRouter);
 app.use('/user', verifyToken, userRouter);
 app.use('/product', verifyToken, productRouter);
+app.use('/category', verifyToken, categoryRouter);
 
 // run server
 const port = process.env.PORT || 3001;

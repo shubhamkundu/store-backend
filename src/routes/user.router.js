@@ -17,16 +17,16 @@ module.exports = ({ db }) => {
             .catch(handleAPIError.bind(null, req, res));
     });
 
-    userRouter.get('/:userId', verifyAdmin, (req, res) => {
-        userService.getUserByUserId(req.params.userId)
+    userRouter.get('/by-user-id', verifyAdmin, (req, res) => {
+        userService.getUserByUserId(req.query.userId)
             .then(response => {
                 res.send(response);
             })
             .catch(handleAPIError.bind(null, req, res));
     });
 
-    userRouter.get('/:userId', verifyAdmin, (req, res) => {
-        userService.getUserByEmail(req.params.email)
+    userRouter.get('/by-email', verifyAdmin, (req, res) => {
+        userService.getUserByEmail(req.query.email)
             .then(response => {
                 res.send(response);
             })
@@ -49,8 +49,8 @@ module.exports = ({ db }) => {
             .catch(handleAPIError.bind(null, req, res));
     });
 
-    userRouter.delete('/:userId', verifyAdmin, (req, res) => {
-        userService.deleteUser(req.params.userId, req.user)
+    userRouter.delete('/', verifyAdmin, (req, res) => {
+        userService.deleteUser(req.query.userId, req.user)
             .then(response => {
                 res.send(response);
             })

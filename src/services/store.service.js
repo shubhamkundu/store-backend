@@ -16,7 +16,7 @@ module.exports = ({ db }) => ({
 
     getStoreByStoreId: (storeIdStr) => new Promise(async (resolve, reject) => {
         try {
-            const valid = validateId('storeId', storeIdStr, 'path');
+            const valid = validateId('storeId', storeIdStr, 'query');
             if (!valid.ok) {
                 return reject({
                     statusCode: 400,
@@ -65,6 +65,30 @@ module.exports = ({ db }) => ({
                 });
             }
 
+            let store = await db.models.Store.findOne({ phone: body.phone, isDeleted: { $ne: true } });
+            if (store) {
+                return reject({
+                    statusCode: 400,
+                    errorMessage: `phone already exists`
+                });
+            }
+
+            store = await db.models.Store.findOne({ storeOwner: body.storeOwner, isDeleted: { $ne: true } });
+            if (store) {
+                return reject({
+                    statusCode: 400,
+                    errorMessage: `storeOwner already has another store`
+                });
+            }
+
+            const user = await db.models.User.findOne({ userId: body.storeOwner, isDeleted: { $ne: true } });
+            if (!user) {
+                return reject({
+                    statusCode: 400,
+                    errorMessage: `storeOwner is not a valid user`
+                });
+            }
+
             const storeDoc = {
                 storeId: now.getTime(),
                 ...copyPropsFromObj(['name', 'location', 'phone', 'storeOwner'], body),
@@ -72,8 +96,10 @@ module.exports = ({ db }) => ({
                 createdBy: loggedInUser.userId
             };
 
-            const result = await db.models.Store.create(storeDoc);
-            resolve(result);
+            const resultStore = await db.models.Store.create(storeDoc);
+            const resultUser = await db.models.User
+                .updateOne({ userId: body.storeOwner, isDeleted: { $ne: true } }, { storeId: storeDoc.storeId });
+            resolve({ resultStore, resultUser });
         } catch (e) {
             return reject({
                 statusCode: 500,
@@ -118,6 +144,13 @@ module.exports = ({ db }) => ({
             }
             if (body.phone) {
                 updateObj.phone = body.phone;
+                const store = await db.models.Store.findOne({ phone: body.phone, isDeleted: { $ne: true } });
+                if (store) {
+                    return reject({
+                        statusCode: 400,
+                        errorMessage: `phone already exists`
+                    });
+                }
             }
             updateObj.updatedOn = now.toISOString();
             updateObj.updatedBy = loggedInUser.userId;
@@ -127,7 +160,7 @@ module.exports = ({ db }) => ({
             if (result.n === 0) {
                 return reject({
                     statusCode: 404,
-                    errorMessage: `Store not found against against storeId: ${queryObj.storeId}`
+                    errorMessage: `Store not found against storeId: ${queryObj.storeId}`
                 });
             }
 
@@ -143,7 +176,7 @@ module.exports = ({ db }) => ({
     deleteStore: (storeIdStr, loggedInUser) => new Promise(async (resolve, reject) => {
         const now = new Date();
         try {
-            const valid = validateId('storeId', storeIdStr, 'path');
+            const valid = validateId('storeId', storeIdStr, 'query');
             if (!valid.ok) {
                 return reject({
                     statusCode: 400,
@@ -169,7 +202,17 @@ module.exports = ({ db }) => ({
 
             const productDeleteResult = await db.models.Product.update(queryObj, updateObj);
 
-            resolve({ storeDeleteResult, productDeleteResult });
+            const queryUserObj = {
+                storeId
+            };
+            const updateUserObj = {
+                $unset: {
+                    storeId: 1
+                }
+            };
+            const userUpdateResult = await db.models.User.updateOne(queryUserObj, updateUserObj);
+
+            resolve({ storeDeleteResult, productDeleteResult, userUpdateResult });
         } catch (e) {
             return reject({
                 statusCode: 500,

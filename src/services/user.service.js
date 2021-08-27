@@ -18,7 +18,7 @@ module.exports = ({ db }) => ({
 
     getUserByUserId: (userIdStr) => new Promise(async (resolve, reject) => {
         try {
-            const valid = validateId('userId', userIdStr, 'path');
+            const valid = validateId('userId', userIdStr, 'query');
             if (!valid.ok) {
                 return reject({
                     statusCode: 400,
@@ -53,6 +53,7 @@ module.exports = ({ db }) => ({
                     errorMessage: valid.reason
                 });
             }
+            email = email.trim();
 
             const user = await db.models.User.findOne({ email, isDeleted: { $ne: true } });
             if (!user) {
@@ -173,7 +174,7 @@ module.exports = ({ db }) => ({
     deleteUser: (userIdStr, loggedInUser) => new Promise(async (resolve, reject) => {
         const now = new Date();
         try {
-            const valid = validateId('userId', userIdStr, 'path');
+            const valid = validateId('userId', userIdStr, 'query');
             if (!valid.ok) {
                 return reject({
                     statusCode: 400,

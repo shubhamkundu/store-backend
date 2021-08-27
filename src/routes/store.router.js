@@ -17,8 +17,8 @@ module.exports = ({ db }) => {
             .catch(handleAPIError.bind(null, req, res));
     });
 
-    storeRouter.get('/:storeId', verifyAdmin, (req, res) => {
-        storeService.getStoreByStoreId(req.params.storeId)
+    storeRouter.get('/by-store-id', verifyAdmin, (req, res) => {
+        storeService.getStoreByStoreId(req.query.storeId)
             .then(response => {
                 res.send(response);
             })
@@ -49,8 +49,8 @@ module.exports = ({ db }) => {
             .catch(handleAPIError.bind(null, req, res));
     });
 
-    storeRouter.delete('/:storeId', verifyAdmin, (req, res) => {
-        storeService.deleteStore(req.params.storeId, req.user)
+    storeRouter.delete('/', verifyAdmin, (req, res) => {
+        storeService.deleteStore(req.query.storeId, req.user)
             .then(response => {
                 res.send(response);
             })

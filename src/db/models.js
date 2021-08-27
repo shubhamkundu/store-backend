@@ -4,9 +4,9 @@ module.exports = (mongoose) => {
     const storeSchema = new mongoose.Schema({
         storeId: { type: Number, required: true, unique: true },
         name: { type: String, required: true },
-        location: { type: String, required: true, unique: true },
-        phone: { type: Number, required: true, unique: true },
-        storeOwner: { type: Number, required: true, unique: true },
+        location: { type: String, required: true },
+        phone: { type: Number, required: true },
+        storeOwner: { type: Number, required: true, unique: true }, // one person can have only one store
         createdOn: { type: String, required: true },
         createdBy: { type: Number, required: true },
         updatedOn: { type: String },
@@ -22,6 +22,7 @@ module.exports = (mongoose) => {
         email: { type: String, required: true, unique: true },
         password: { type: String, required: true },
         userRole: { type: String },
+        storeId: { type: Number },
         createdOn: { type: String, required: true },
         updatedOn: { type: String },
         updatedBy: { type: Number },
@@ -35,7 +36,7 @@ module.exports = (mongoose) => {
         productId: { type: Number, required: true, unique: true },
         name: { type: String, required: true, unique: true },
         category: { type: String, required: true },
-        availableQuantity: { type: Number, required: true, min: 0 },
+        availableQuantity: { type: Number, required: true },
         description: { type: String },
         storeId: { type: Number, required: true },
         createdOn: { type: String, required: true },
@@ -47,7 +48,13 @@ module.exports = (mongoose) => {
         deletedBy: { type: Number }
     });
 
+    const categorySchema = new mongoose.Schema({
+        categoryId: { type: Number, required: true, unique: true },
+        categoryName: { type: String, required: true, unique: true }
+    });
+
     mongoose.model('Store', storeSchema);
     mongoose.model('User', userSchema);
     mongoose.model('Product', productSchema);
+    mongoose.model('Category', categorySchema);
 };

@@ -32,6 +32,7 @@ module.exports = {
                     reason: `Please provide string value for name in request body`
                 };
             }
+            body.name = body.name.trim();
         }
         if (requestType === 'insert' || body.location !== undefined) {
             updateRequired = true;
@@ -41,10 +42,11 @@ module.exports = {
                     reason: `Please provide string value for location in request body`
                 };
             }
+            body.location = body.location.trim();
         }
         if (requestType === 'insert' || body.phone !== undefined) {
             updateRequired = true;
-            if (typeof body.phone !== 'string' || body.phone.trim() === '') {
+            if (!(typeof body.phone === 'string' || typeof body.phone === 'number')) {
                 return {
                     ok: false,
                     reason: `Please provide value for phone in request body`
@@ -60,13 +62,13 @@ module.exports = {
             if (('' + body.phone).length != validationConfig.phoneLength) {
                 return {
                     ok: false,
-                    reason: `Please provide 10-digit integer value for phone in request body`
+                    reason: `Please provide ${validationConfig.phoneLength}-digit integer value for phone in request body`
                 };
             }
         }
         if (requestType === 'insert' || body.storeOwner !== undefined) {
             updateRequired = true;
-            if (typeof body.storeOwner !== 'string' || body.storeOwner.trim() === '') {
+            if (!(typeof body.storeOwner === 'string' || typeof body.storeOwner === 'number')) {
                 return {
                     ok: false,
                     reason: `Please provide value for storeOwner in request body`
@@ -98,6 +100,7 @@ module.exports = {
                     reason: `Please provide string value for name in request body`
                 };
             }
+            body.name = body.name.trim();
         }
         if (requestType === 'insert' || body.email !== undefined) {
             updateRequired = true;
@@ -107,6 +110,7 @@ module.exports = {
                     reason: `Please provide string value for email in request body`
                 };
             }
+            body.email = body.email.trim();
             if (!validateEmail(body.email)) {
                 return {
                     ok: false,
@@ -172,6 +176,7 @@ module.exports = {
                 reason: `Please provide string value for email in request body`
             };
         }
+        body.email = body.email.trim();
         if (!validateEmail(body.email)) {
             return {
                 ok: false,
@@ -209,6 +214,7 @@ module.exports = {
                     reason: `Please provide string value for name in request body`
                 };
             }
+            body.name = body.name.trim();
         }
         if (requestType === 'insert' || body.category !== undefined) {
             updateRequired = true;
@@ -218,10 +224,11 @@ module.exports = {
                     reason: `Please provide string value for category in request body`
                 };
             }
+            body.category = body.category.trim();
         }
         if (requestType === 'insert' || body.availableQuantity !== undefined) {
             updateRequired = true;
-            if (typeof body.availableQuantity !== 'string' || body.availableQuantity.trim() === '') {
+            if (!(typeof body.availableQuantity === 'string' || typeof body.availableQuantity === 'number')) {
                 return {
                     ok: false,
                     reason: `Please provide value for phone in request body`
@@ -234,6 +241,12 @@ module.exports = {
                     reason: `Please provide integer value for availableQuantity in request body`
                 };
             }
+            if (body.availableQuantity < validationConfig.productAvlblQtyMin || body.availableQuantity > validationConfig.productAvlblQtyMax) {
+                return {
+                    ok: false,
+                    reason: `value for availableQuantity in request body should be an integer between ${validationConfig.productAvlblQtyMin} and ${validationConfig.productAvlblQtyMax}`
+                };
+            }
         }
         if (requestType === 'insert' || body.description !== undefined) {
             updateRequired = true;
@@ -243,10 +256,23 @@ module.exports = {
                     reason: `Please provide string value for description in request body`
                 };
             }
+            body.description = body.description.trim();
+            if (body.description.length < validationConfig.productDescMinLength) {
+                return {
+                    ok: false,
+                    reason: `description in request body should be minimum ${validationConfig.productDescMinLength} characters long`
+                };
+            }
+            if (body.description.length > validationConfig.productDescMaxLength) {
+                return {
+                    ok: false,
+                    reason: `description in request body should be maximum ${validationConfig.productDescMaxLength} characters long`
+                };
+            }
         }
         if (requestType === 'insert' && body.storeId !== undefined) {
             updateRequired = true;
-            if (typeof body.storeId !== 'string' || body.storeId.trim() === '') {
+            if (!(typeof body.storeId === 'string' || typeof body.storeId === 'number')) {
                 return {
                     ok: false,
                     reason: `Please provide value for storeId in request body`

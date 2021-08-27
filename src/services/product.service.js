@@ -16,7 +16,7 @@ module.exports = ({ db }) => ({
 
     getProductByProductId: (productIdStr) => new Promise(async (resolve, reject) => {
         try {
-            const valid = validateId('productId', productIdStr, 'path');
+            const valid = validateId('productId', productIdStr, 'query');
             if (!valid.ok) {
                 return reject({
                     statusCode: 400,
@@ -44,7 +44,7 @@ module.exports = ({ db }) => ({
     getProductsByStoreId: (storeIdStr, loggedInUser) => new Promise(async (resolve, reject) => {
         try {
             let storeId;
-            const valid = validateId('storeId', storeIdStr, 'path');
+            const valid = validateId('storeId', storeIdStr, 'query');
             if (valid.ok && loggedInUser.userRole === 'admin') {
                 storeId = valid.value;
             } else {
@@ -213,7 +213,7 @@ module.exports = ({ db }) => ({
     deleteProduct: (productIdStr, loggedInUser) => new Promise(async (resolve, reject) => {
         const now = new Date();
         try {
-            const valid = validateId('productId', productIdStr, 'path');
+            const valid = validateId('productId', productIdStr, 'query');
             if (!valid.ok) {
                 return reject({
                     statusCode: 400,

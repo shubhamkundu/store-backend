@@ -12,6 +12,7 @@ module.exports = ({ db }) => {
                         errorMessage: valid.reason
                     });
                 }
+                email = email.trim();
 
                 const user = await db.models.User.findOne({ email, isDeleted: { $ne: true } });
                 if (!user) {
@@ -40,7 +41,7 @@ module.exports = ({ db }) => {
                     });
                 }
 
-                const user = await db.models.User.findOne({ email: body.email });
+                const user = await db.models.User.findOne({ email: body.email, isDeleted: { $ne: true } });
                 if (user) {
                     return reject({
                         statusCode: 400,
