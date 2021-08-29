@@ -66,19 +66,19 @@ module.exports = {
                 };
             }
         }
-        if (requestType === 'insert' || body.storeOwner !== undefined) {
+        if (requestType === 'insert' || body.storeOwnerId !== undefined) {
             updateRequired = true;
-            if (!(typeof body.storeOwner === 'string' || typeof body.storeOwner === 'number')) {
+            if (!(typeof body.storeOwnerId === 'string' || typeof body.storeOwnerId === 'number')) {
                 return {
                     ok: false,
-                    reason: `Please provide value for storeOwner in request body`
+                    reason: `Please provide value for storeOwnerId in request body`
                 };
             }
-            body.storeOwner = parseInt(body.storeOwner);
-            if (!Number.isInteger(body.storeOwner)) {
+            body.storeOwnerId = parseInt(body.storeOwnerId);
+            if (!Number.isInteger(body.storeOwnerId)) {
                 return {
                     ok: false,
-                    reason: `Please provide integer value for storeOwner in request body`
+                    reason: `Please provide integer value for storeOwnerId in request body`
                 };
             }
         }

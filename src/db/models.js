@@ -6,7 +6,7 @@ module.exports = (mongoose) => {
         name: { type: String, required: true },
         location: { type: String, required: true },
         phone: { type: Number, required: true },
-        storeOwner: { type: Number, required: true, unique: true }, // one person can have only one store
+        storeOwnerId: { type: Number, required: true, unique: true }, // one person can have only one store
         createdOn: { type: String, required: true },
         createdBy: { type: Number, required: true },
         updatedOn: { type: String },
@@ -34,7 +34,7 @@ module.exports = (mongoose) => {
 
     const productSchema = new mongoose.Schema({
         productId: { type: Number, required: true, unique: true },
-        name: { type: String, required: true, unique: true },
+        name: { type: String, required: true },
         category: { type: String, required: true },
         availableQuantity: { type: Number, required: true },
         description: { type: String },
@@ -49,7 +49,7 @@ module.exports = (mongoose) => {
     });
 
     const categorySchema = new mongoose.Schema({
-        categoryId: { type: Number, required: true, unique: true },
+        categoryId: { type: String, required: true, unique: true },
         categoryName: { type: String, required: true, unique: true }
     });
 

@@ -17,6 +17,14 @@ module.exports = ({ db }) => {
             .catch(handleAPIError.bind(null, req, res));
     });
 
+    userRouter.get('/having-store', verifyAdmin, (req, res) => {
+        userService.getAllUsersHavingStore()
+            .then(response => {
+                res.send(response);
+            })
+            .catch(handleAPIError.bind(null, req, res));
+    });
+
     userRouter.get('/by-user-id', verifyAdmin, (req, res) => {
         userService.getUserByUserId(req.query.userId)
             .then(response => {

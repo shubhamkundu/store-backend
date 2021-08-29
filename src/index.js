@@ -35,5 +35,6 @@ app.use('/category', verifyToken, categoryRouter);
 // run server
 const port = process.env.PORT || 3001;
 app.listen(port, () => {
+    console.log(new Date());
     console.log(`store-backend server is listening on port: ${port}`);
 });

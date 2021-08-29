@@ -44,7 +44,7 @@ module.exports = ({ db }) => ({
     getStoreByStoreOwner: (loggedInUser) => new Promise(async (resolve, reject) => {
         try {
             const store = await db.models.Store
-                .findOne({ storeOwner: loggedInUser.userId, isDeleted: { $ne: true } });
+                .findOne({ storeOwnerId: loggedInUser.userId, isDeleted: { $ne: true } });
             resolve(store);
         } catch (e) {
             return reject({
@@ -73,32 +73,32 @@ module.exports = ({ db }) => ({
                 });
             }
 
-            store = await db.models.Store.findOne({ storeOwner: body.storeOwner, isDeleted: { $ne: true } });
+            store = await db.models.Store.findOne({ storeOwnerId: body.storeOwnerId, isDeleted: { $ne: true } });
             if (store) {
                 return reject({
                     statusCode: 400,
-                    errorMessage: `storeOwner already has another store`
+                    errorMessage: `storeOwnerId already has another store`
                 });
             }
 
-            const user = await db.models.User.findOne({ userId: body.storeOwner, isDeleted: { $ne: true } });
+            const user = await db.models.User.findOne({ userId: body.storeOwnerId, isDeleted: { $ne: true } });
             if (!user) {
                 return reject({
                     statusCode: 400,
-                    errorMessage: `storeOwner is not a valid user`
+                    errorMessage: `storeOwnerId is not a valid user`
                 });
             }
 
             const storeDoc = {
                 storeId: now.getTime(),
-                ...copyPropsFromObj(['name', 'location', 'phone', 'storeOwner'], body),
+                ...copyPropsFromObj(['name', 'location', 'phone', 'storeOwnerId'], body),
                 createdOn: now.toISOString(),
                 createdBy: loggedInUser.userId
             };
 
             const resultStore = await db.models.Store.create(storeDoc);
             const resultUser = await db.models.User
-                .updateOne({ userId: body.storeOwner, isDeleted: { $ne: true } }, { storeId: storeDoc.storeId });
+                .updateOne({ userId: body.storeOwnerId, isDeleted: { $ne: true } }, { storeId: storeDoc.storeId });
             resolve({ resultStore, resultUser });
         } catch (e) {
             return reject({

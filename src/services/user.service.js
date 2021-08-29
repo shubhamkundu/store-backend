@@ -16,6 +16,21 @@ module.exports = ({ db }) => ({
         }
     }),
 
+    getAllUsersHavingStore: () => new Promise(async (resolve, reject) => {
+        try {
+            const users = await db.models.User.find({ storeId: { $exists: true }, isDeleted: { $ne: true } });
+            users.forEach(user => {
+                delete user._doc.password;
+            })
+            resolve(users);
+        } catch (e) {
+            return reject({
+                statusCode: 500,
+                errorMessage: e
+            });
+        }
+    }),
+
     getUserByUserId: (userIdStr) => new Promise(async (resolve, reject) => {
         try {
             const valid = validateId('userId', userIdStr, 'query');
@@ -199,7 +214,7 @@ module.exports = ({ db }) => ({
             }
 
             const store = await db.models.Store
-                .findOne({ storeOwner: userId, isDeleted: { $ne: true } });
+                .findOne({ storeOwnerId: userId, isDeleted: { $ne: true } });
             let storeDeleteResult = null, productDeleteResult = null;
             if (store) {
                 const storeQueryObj = { storeId: store.storeId, isDeleted: { $ne: true } };

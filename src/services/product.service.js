@@ -49,17 +49,17 @@ module.exports = ({ db }) => ({
                 storeId = valid.value;
             } else {
                 const store = await db.models.Store
-                    .findOne({ storeOwner: loggedInUser.userId, isDeleted: { $ne: true } });
+                    .findOne({ storeOwnerId: loggedInUser.userId, isDeleted: { $ne: true } });
                 if (!store) {
                     if (loggedInUser.userRole === 'admin') {
                         return reject({
                             statusCode: 400,
-                            errorMessage: `Store not found for storeOwner: ${loggedInUser.userId}, please provide a storeId in request path`
+                            errorMessage: `Store not found for storeOwnerId: ${loggedInUser.userId}, please provide a storeId in request path`
                         });
                     }
                     return reject({
                         statusCode: 404,
-                        errorMessage: `Store not found for storeOwner: ${loggedInUser.userId}`
+                        errorMessage: `Store not found for storeOwnerId: ${loggedInUser.userId}`
                     });
                 }
                 storeId = store.storeId;
@@ -92,20 +92,29 @@ module.exports = ({ db }) => ({
                 storeId = valid.value;
             } else {
                 const store = await db.models.Store
-                    .findOne({ storeOwner: loggedInUser.userId, isDeleted: { $ne: true } });
+                    .findOne({ storeOwnerId: loggedInUser.userId, isDeleted: { $ne: true } });
                 if (!store) {
                     if (loggedInUser.userRole === 'admin') {
                         return reject({
                             statusCode: 400,
-                            errorMessage: `Store not found for storeOwner: ${loggedInUser.userId}, please provide a storeId in request path`
+                            errorMessage: `Store not found for storeOwnerId: ${loggedInUser.userId}, please provide a storeId in request path`
                         });
                     }
                     return reject({
                         statusCode: 404,
-                        errorMessage: `Store not found for storeOwner: ${loggedInUser.userId}`
+                        errorMessage: `Store not found for storeOwnerId: ${loggedInUser.userId}`
                     });
                 }
                 storeId = store.storeId;
+            }
+
+            const productWithSameNameInSameStore = await db.models.Product
+                .findOne({ name: body.name, storeId: body.storeId, isDeleted: { $ne: true } });
+            if (productWithSameNameInSameStore) {
+                return reject({
+                    statusCode: 400,
+                    errorMessage: `Product with name (${body.name}) already exists in this store`
+                });
             }
 
             const productDoc = {
@@ -138,6 +147,20 @@ module.exports = ({ db }) => ({
             }
             body.productId = valid.value;
 
+            valid = validateProductBody(body, 'update');
+            if (!valid.ok) {
+                return reject({
+                    statusCode: 400,
+                    errorMessage: valid.reason
+                });
+            }
+            if (!valid.updateRequired) {
+                return reject({
+                    statusCode: 400,
+                    errorMessage: `Provide at least one value to update`
+                });
+            }
+
             if (loggedInUser.userRole !== 'admin') {
                 const product = await db.models.Product.findOne({ productId: body.productId, isDeleted: { $ne: true } });
                 if (!product) {
@@ -153,7 +176,7 @@ module.exports = ({ db }) => ({
                         errorMessage: `Store not found against storeId: ${product.storeId}, for productId: ${queryObj.productId}`
                     });
                 }
-                if (store.storeOwner !== loggedInUser.userId) {
+                if (store.storeOwnerId !== loggedInUser.userId) {
                     return reject({
                         statusCode: 403,
                         errorMessage: `Access Denied! Only admins can edit products of stores of other people`
@@ -161,24 +184,18 @@ module.exports = ({ db }) => ({
                 }
             }
 
-            valid = validateProductBody(body, 'update');
-            if (!valid.ok) {
-                return reject({
-                    statusCode: 400,
-                    errorMessage: valid.reason
-                });
-            }
-            if (!valid.updateRequired) {
-                return reject({
-                    statusCode: 400,
-                    errorMessage: `Provide at least one value to update`
-                });
-            }
-
             const queryObj = { productId: body.productId, isDeleted: { $ne: true } };
             const updateObj = {};
             if (body.name) {
                 updateObj.name = body.name;
+                const productWithSameNameInSameStore = await db.models.Product
+                    .findOne({ name: body.name, storeId: body.storeId, isDeleted: { $ne: true } });
+                if (productWithSameNameInSameStore) {
+                    return reject({
+                        statusCode: 400,
+                        errorMessage: `Product with name (${body.name}) already exists in this store`
+                    });
+                }
             }
             if (body.category) {
                 updateObj.category = body.category;
@@ -238,7 +255,7 @@ module.exports = ({ db }) => ({
                         errorMessage: `Store not found against storeId: ${product.storeId}, for productId: ${queryObj.productId}`
                     });
                 }
-                if (store.storeOwner !== loggedInUser.userId) {
+                if (store.storeOwnerId !== loggedInUser.userId) {
                     return reject({
                         statusCode: 403,
                         errorMessage: `Access Denied! Only admins can delete products of stores of other people`
