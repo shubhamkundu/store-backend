@@ -11,6 +11,7 @@ const DEFAULT = {
     PRODUCT_AVLBL_QTY_MIN: 0,
     PRODUCT_AVLBL_QTY_MAX: 99999,
     ALLOWED_USER_ROLES: ['subuser', 'admin'],
+    REJECT_REASON_MIN_LENGTH: 10,
     BCRYPT_SALT_WORK_FACTOR: 10,
     JWT_SECRET: '',
     JWT_EXPIRES_IN: ''
@@ -34,7 +35,8 @@ module.exports = {
         allowedUserRoles:
             process.env.ALLOWED_USER_ROLES
                 ? process.env.ALLOWED_USER_ROLES.split(',')
-                : DEFAULT.ALLOWED_USER_ROLES
+                : DEFAULT.ALLOWED_USER_ROLES,
+        rejectReasonMinLength: process.env.REJECT_REASON_MIN_LENGTH || DEFAULT.REJECT_REASON_MIN_LENGTH
     },
     encryption: {
         bcryptSaltWorkFactor:

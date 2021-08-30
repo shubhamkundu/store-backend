@@ -3,5 +3,6 @@ module.exports = ({ db }) => ({
     storeService: require('./store.service')({ db }),
     userService: require('./user.service')({ db }),
     productService: require('./product.service')({ db }),
-    categoryService: require('./category.service')({ db })
+    categoryService: require('./category.service')({ db }),
+    storeRequestService: require('./store-request.service')({ db })
 });

@@ -14,7 +14,8 @@ const {
     storeRouter,
     userRouter,
     productRouter,
-    categoryRouter
+    categoryRouter,
+    storeRequestRouter
 } = require('./routes')({ db });
 
 // initialize express app
@@ -31,6 +32,7 @@ app.use('/store', verifyToken, storeRouter);
 app.use('/user', verifyToken, userRouter);
 app.use('/product', verifyToken, productRouter);
 app.use('/category', verifyToken, categoryRouter);
+app.use('/store-request', verifyToken, storeRequestRouter);
 
 // run server
 const port = process.env.PORT || 3001;

@@ -23,6 +23,7 @@ module.exports = (mongoose) => {
         password: { type: String, required: true },
         userRole: { type: String },
         storeId: { type: Number },
+        storeRequestId: { type: Number },
         createdOn: { type: String, required: true },
         updatedOn: { type: String },
         updatedBy: { type: Number },
@@ -53,8 +54,30 @@ module.exports = (mongoose) => {
         categoryName: { type: String, required: true, unique: true }
     });
 
+    const storeRequestSchema = new mongoose.Schema({
+        storeRequestId: { type: Number, required: true, unique: true },
+        name: { type: String, required: true },
+        location: { type: String, required: true },
+        phone: { type: Number, required: true },
+        storeRequestType: { type: String, required: true }, // insert/update
+        storeRequestStatus: { type: String, required: true }, // pending/approved/rejected
+        createdOn: { type: String, required: true },
+        createdBy: { type: Number, required: true },
+        updatedOn: { type: String },
+        updatedBy: { type: Number },
+        approvedOn: { type: String },
+        approvedBy: { type: Number },
+        rejectReason: { type: String },
+        rejectedOn: { type: String },
+        rejectedBy: { type: Number },
+        isDeleted: { type: Boolean, default: false },
+        deletedOn: { type: String },
+        deletedBy: { type: Number }
+    });
+
     mongoose.model('Store', storeSchema);
     mongoose.model('User', userSchema);
     mongoose.model('Product', productSchema);
     mongoose.model('Category', categorySchema);
+    mongoose.model('StoreRequest', storeRequestSchema);
 };

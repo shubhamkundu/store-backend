@@ -65,27 +65,27 @@ module.exports = ({ db }) => ({
                 });
             }
 
-            let store = await db.models.Store.findOne({ phone: body.phone, isDeleted: { $ne: true } });
-            if (store) {
-                return reject({
-                    statusCode: 400,
-                    errorMessage: `phone already exists`
-                });
-            }
-
-            store = await db.models.Store.findOne({ storeOwnerId: body.storeOwnerId, isDeleted: { $ne: true } });
-            if (store) {
-                return reject({
-                    statusCode: 400,
-                    errorMessage: `storeOwnerId already has another store`
-                });
-            }
-
             const user = await db.models.User.findOne({ userId: body.storeOwnerId, isDeleted: { $ne: true } });
             if (!user) {
                 return reject({
                     statusCode: 400,
-                    errorMessage: `storeOwnerId is not a valid user`
+                    errorMessage: `storeOwner with id: ${body.storeOwnerId} is not a valid user`
+                });
+            }
+
+            let store = await db.models.Store.findOne({ storeOwnerId: body.storeOwnerId, isDeleted: { $ne: true } });
+            if (store) {
+                return reject({
+                    statusCode: 400,
+                    errorMessage: `storeOwner with id: ${body.storeOwnerId} already has another store`
+                });
+            }
+
+            store = await db.models.Store.findOne({ phone: body.phone, isDeleted: { $ne: true } });
+            if (store) {
+                return reject({
+                    statusCode: 400,
+                    errorMessage: `phone already exists`
                 });
             }
 

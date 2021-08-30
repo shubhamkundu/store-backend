@@ -1,6 +1,12 @@
 const validationConfig = require('./../config/config').validation;
 const { validateEmail, validatePassword } = require('./../utils/lib');
 
+const CONSTANTS = {
+    INSERT_REQUEST_TYPE: 'insert',
+    UPDATE_REQUEST_TYPE: 'update',
+    ALLOWED_STORE_REQUEST_TYPES: ['insert', 'update']
+};
+
 module.exports = {
     validateId: (idName, idStr, location) => {
         if (idStr == null) {
@@ -24,7 +30,7 @@ module.exports = {
 
     validateStoreBody: (body, requestType) => {
         let updateRequired = false;
-        if (requestType === 'insert' || body.name !== undefined) {
+        if (requestType === CONSTANTS.INSERT_REQUEST_TYPE || body.name !== undefined) {
             updateRequired = true;
             if (typeof body.name !== 'string' || body.name.trim() === '') {
                 return {
@@ -34,7 +40,7 @@ module.exports = {
             }
             body.name = body.name.trim();
         }
-        if (requestType === 'insert' || body.location !== undefined) {
+        if (requestType === CONSTANTS.INSERT_REQUEST_TYPE || body.location !== undefined) {
             updateRequired = true;
             if (typeof body.location !== 'string' || body.location.trim() === '') {
                 return {
@@ -44,7 +50,7 @@ module.exports = {
             }
             body.location = body.location.trim();
         }
-        if (requestType === 'insert' || body.phone !== undefined) {
+        if (requestType === CONSTANTS.INSERT_REQUEST_TYPE || body.phone !== undefined) {
             updateRequired = true;
             if (!(typeof body.phone === 'string' || typeof body.phone === 'number')) {
                 return {
@@ -66,7 +72,7 @@ module.exports = {
                 };
             }
         }
-        if (requestType === 'insert' || body.storeOwnerId !== undefined) {
+        if (requestType === CONSTANTS.INSERT_REQUEST_TYPE || body.storeOwnerId !== undefined) {
             updateRequired = true;
             if (!(typeof body.storeOwnerId === 'string' || typeof body.storeOwnerId === 'number')) {
                 return {
@@ -83,8 +89,8 @@ module.exports = {
             }
         }
 
-        const result = { ok: 1 };
-        if (requestType === 'update') {
+        const result = { ok: true };
+        if (requestType === CONSTANTS.UPDATE_REQUEST_TYPE) {
             result.updateRequired = updateRequired;
         }
         return result;
@@ -92,7 +98,7 @@ module.exports = {
 
     validateUserBody: (body, requestType) => {
         let updateRequired = false;
-        if (requestType === 'insert' || body.name !== undefined) {
+        if (requestType === CONSTANTS.INSERT_REQUEST_TYPE || body.name !== undefined) {
             updateRequired = true;
             if (typeof body.name !== 'string' || body.name.trim() === '') {
                 return {
@@ -102,7 +108,7 @@ module.exports = {
             }
             body.name = body.name.trim();
         }
-        if (requestType === 'insert' || body.email !== undefined) {
+        if (requestType === CONSTANTS.INSERT_REQUEST_TYPE || body.email !== undefined) {
             updateRequired = true;
             if (typeof body.email !== 'string' || body.email.trim() === '') {
                 return {
@@ -118,7 +124,7 @@ module.exports = {
                 };
             }
         }
-        if (requestType === 'insert') {
+        if (requestType === CONSTANTS.INSERT_REQUEST_TYPE) {
             updateRequired = true;
             if (typeof body.password !== 'string' || body.password.trim() === '') {
                 return {
@@ -146,8 +152,8 @@ module.exports = {
             }
         }
 
-        const result = { ok: 1 };
-        if (requestType === 'update') {
+        const result = { ok: true };
+        if (requestType === CONSTANTS.UPDATE_REQUEST_TYPE) {
             result.updateRequired = updateRequired;
         }
         return result;
@@ -206,7 +212,7 @@ module.exports = {
     validateProductBody: (body, requestType) => {
         requestType = requestType.toLowerCase();
         let updateRequired = false;
-        if (requestType === 'insert' || body.name !== undefined) {
+        if (requestType === CONSTANTS.INSERT_REQUEST_TYPE || body.name !== undefined) {
             updateRequired = true;
             if (typeof body.name !== 'string' || body.name.trim() === '') {
                 return {
@@ -216,7 +222,7 @@ module.exports = {
             }
             body.name = body.name.trim();
         }
-        if (requestType === 'insert' || body.category !== undefined) {
+        if (requestType === CONSTANTS.INSERT_REQUEST_TYPE || body.category !== undefined) {
             updateRequired = true;
             if (typeof body.category !== 'string' || body.category.trim() === '') {
                 return {
@@ -226,7 +232,7 @@ module.exports = {
             }
             body.category = body.category.trim();
         }
-        if (requestType === 'insert' || body.availableQuantity !== undefined) {
+        if (requestType === CONSTANTS.INSERT_REQUEST_TYPE || body.availableQuantity !== undefined) {
             updateRequired = true;
             if (!(typeof body.availableQuantity === 'string' || typeof body.availableQuantity === 'number')) {
                 return {
@@ -248,7 +254,7 @@ module.exports = {
                 };
             }
         }
-        if (requestType === 'insert' || body.description !== undefined) {
+        if (requestType === CONSTANTS.INSERT_REQUEST_TYPE || body.description !== undefined) {
             updateRequired = true;
             if (typeof body.description !== 'string' || body.description.trim() === '') {
                 return {
@@ -270,7 +276,7 @@ module.exports = {
                 };
             }
         }
-        if (requestType === 'insert' && body.storeId !== undefined) {
+        if (requestType === CONSTANTS.INSERT_REQUEST_TYPE && body.storeId !== undefined) {
             updateRequired = true;
             if (!(typeof body.storeId === 'string' || typeof body.storeId === 'number')) {
                 return {
@@ -287,10 +293,90 @@ module.exports = {
             }
         }
 
-        const result = { ok: 1 };
-        if (requestType === 'update') {
+        const result = { ok: true };
+        if (requestType === CONSTANTS.UPDATE_REQUEST_TYPE) {
             result.updateRequired = updateRequired;
         }
         return result;
+    },
+
+    validateStoreRequestBody: (body, requestType) => {
+        if (typeof body.storeRequestType !== 'string' || body.storeRequestType.trim() === '') {
+            return {
+                ok: false,
+                reason: `Please provide string value for storeRequestType in request body`
+            };
+        }
+        if (!CONSTANTS.ALLOWED_STORE_REQUEST_TYPES.includes(body.storeRequestType)) {
+            return {
+                ok: false,
+                reason: `Allowed storeRequestType in request body: ${CONSTANTS.ALLOWED_STORE_REQUEST_TYPES}`
+            };
+        }
+        let updateRequired = false;
+        if ((requestType === CONSTANTS.INSERT_REQUEST_TYPE && body.storeRequestType === CONSTANTS.INSERT_REQUEST_TYPE) || body.name !== undefined) {
+            updateRequired = true;
+            if (typeof body.name !== 'string' || body.name.trim() === '') {
+                return {
+                    ok: false,
+                    reason: `Please provide string value for name in request body`
+                };
+            }
+            body.name = body.name.trim();
+        }
+        if ((requestType === CONSTANTS.INSERT_REQUEST_TYPE && body.storeRequestType === CONSTANTS.INSERT_REQUEST_TYPE) || body.location !== undefined) {
+            updateRequired = true;
+            if (typeof body.location !== 'string' || body.location.trim() === '') {
+                return {
+                    ok: false,
+                    reason: `Please provide string value for location in request body`
+                };
+            }
+            body.location = body.location.trim();
+        }
+        if ((requestType === CONSTANTS.INSERT_REQUEST_TYPE && body.storeRequestType === CONSTANTS.INSERT_REQUEST_TYPE) || body.phone !== undefined) {
+            updateRequired = true;
+            if (!(typeof body.phone === 'string' || typeof body.phone === 'number')) {
+                return {
+                    ok: false,
+                    reason: `Please provide value for phone in request body`
+                };
+            }
+            body.phone = parseInt(body.phone);
+            if (!Number.isInteger(body.phone)) {
+                return {
+                    ok: false,
+                    reason: `Please provide integer value for phone in request body`
+                };
+            }
+            if (('' + body.phone).length != validationConfig.phoneLength) {
+                return {
+                    ok: false,
+                    reason: `Please provide ${validationConfig.phoneLength}-digit integer value for phone in request body`
+                };
+            }
+        }
+
+        const result = { ok: true };
+        if (requestType === CONSTANTS.UPDATE_REQUEST_TYPE || body.storeRequestType === CONSTANTS.UPDATE_REQUEST_TYPE) {
+            result.updateRequired = updateRequired;
+        }
+        return result;
+    },
+
+    validateStoreRequestRejectBody: (body) => {
+        if (typeof body.rejectReason !== 'string' || body.rejectReason.trim() === '') {
+            return reject({
+                ok: false,
+                reason: `Please provide string value for rejectReason in request body`
+            });
+        }
+        if (body.rejectReason.length < validationConfig.rejectReasonMinLength) {
+            return reject({
+                ok: false,
+                reason: `rejectReason in request body should be at least ${validationConfig.rejectReasonMinLength} characters long`
+            });
+        }
+        return { ok: true };
     }
 };
