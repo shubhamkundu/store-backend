@@ -144,7 +144,11 @@ module.exports = ({ db }) => ({
             }
             if (body.phone) {
                 updateObj.phone = body.phone;
-                const store = await db.models.Store.findOne({ phone: body.phone, isDeleted: { $ne: true } });
+                const store = await db.models.Store.findOne({
+                    phone: body.phone,
+                    storeOwnerId: { $ne: body.storeOwnerId },
+                    isDeleted: { $ne: true }
+                });
                 if (store) {
                     return reject({
                         statusCode: 400,

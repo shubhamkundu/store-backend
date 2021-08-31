@@ -56,6 +56,8 @@ module.exports = (mongoose) => {
 
     const storeRequestSchema = new mongoose.Schema({
         storeRequestId: { type: Number, required: true, unique: true },
+        storeId: { type: Number },
+        storeOwnerId: { type: Number },
         name: { type: String, required: true },
         location: { type: String, required: true },
         phone: { type: Number, required: true },

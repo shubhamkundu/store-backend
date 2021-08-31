@@ -240,7 +240,7 @@ module.exports = ({ db }) => ({
             const productId = valid.value;
 
             if (loggedInUser.userRole !== 'admin') {
-                const product = await db.models.Product.findOne({ productId: body.productId, isDeleted: { $ne: true } });
+                const product = await db.models.Product.findOne({ productId, isDeleted: { $ne: true } });
                 if (!product) {
                     return reject({
                         statusCode: 404,
