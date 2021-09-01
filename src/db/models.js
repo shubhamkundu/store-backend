@@ -19,7 +19,7 @@ module.exports = (mongoose) => {
     const userSchema = new mongoose.Schema({
         userId: { type: Number, required: true, unique: true },
         name: { type: String, required: true },
-        email: { type: String, required: true, unique: true },
+        email: { type: String, required: true },
         password: { type: String, required: true },
         userRole: { type: String, default: 'subUser' },
         storeId: { type: Number },
