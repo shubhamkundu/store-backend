@@ -152,6 +152,8 @@ module.exports = {
             }
         }
 
+        delete body.userRole;
+
         const result = { ok: true };
         if (requestType === CONSTANTS.UPDATE_REQUEST_TYPE) {
             result.updateRequired = updateRequired;

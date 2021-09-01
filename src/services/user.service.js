@@ -153,6 +153,12 @@ module.exports = ({ db }) => ({
                 });
             }
             body.userId = valid.value;
+            if (body.userId === loggedInUser.userId) {
+                return reject({
+                    statusCode: 400,
+                    errorMessage: `Changing own user role is not allowed`
+                });
+            }
 
             valid = validateUserRole(body.userRole);
             if (!valid.ok) {
@@ -162,7 +168,10 @@ module.exports = ({ db }) => ({
                 });
             }
 
-            const queryObj = { userId: body.userId, isDeleted: { $ne: true } };
+            const queryObj = {
+                userId: body.userId,
+                isDeleted: { $ne: true }
+            };
             const updateObj = {
                 userRole: body.userRole,
                 updatedOn: now.toISOString(),
@@ -197,6 +206,12 @@ module.exports = ({ db }) => ({
                 });
             }
             const userId = valid.value;
+            if (userId === loggedInUser.userId) {
+                return reject({
+                    statusCode: 400,
+                    errorMessage: `Deleting own account is not allowed`
+                });
+            }
 
             const queryObj = { userId, isDeleted: { $ne: true } };
             const updateObj = {
